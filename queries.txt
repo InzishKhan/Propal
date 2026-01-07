@@ -1,0 +1,193 @@
+create database Pro_Pal_temp
+use Pro_Pal_temp
+
+
+--creating\designing our schema
+
+CREATE TABLE User1 (
+  user_id INT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL,
+  email VARCHAR(50) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  user_type VARCHAR(25) NULL,
+  created_at DATETIME2 DEFAULT GETDATE()
+);
+
+CREATE TABLE Manufacturer (
+  MID INT,
+  manufacturer_id INT NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  company_name VARCHAR(100) NOT NULL,
+  contact_name VARCHAR(100) NOT NULL,
+  contact_email VARCHAR(100) NOT NULL,
+  contact_phone VARCHAR(20) NOT NULL,
+  website_url VARCHAR(255) NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  image VARCHAR(255) NULL,
+  rating FLOAT DEFAULT 0.0,
+  is_premium BIT DEFAULT 0,
+  created_at DATETIME2 DEFAULT GETDATE(),
+  raw_materials VARCHAR(255), -- new attribute
+  PRIMARY KEY(MID),
+  FOREIGN KEY(manufacturer_id) REFERENCES User1(user_id) ON DELETE CASCADE
+);
+
+
+
+CREATE TABLE Consumer (
+  CID INT,
+  consumer_id INT NOT NULL ,
+  password_hash VARCHAR(255) NOT NULL,
+  company_name VARCHAR(100) NOT NULL,
+  contact_name VARCHAR(100) NOT NULL,
+  contact_email VARCHAR(100) NOT NULL,
+  contact_phone VARCHAR(20) NOT NULL,
+  website_url VARCHAR(255) NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  rating FLOAT DEFAULT 0.0,
+ image VARCHAR(255) NULL,
+  is_premium BIT DEFAULT 0,
+  created_at DATETIME2 DEFAULT GETDATE(),
+  PRIMARY KEY(CID),
+  Foreign key(consumer_id) references User1(user_id)  ON DELETE CASCADE
+);
+
+--some alterations
+GO
+ALTER TABLE Consumer
+ADD CONSTRAINT C_id UNIQUE (consumer_id);
+ALTER TABLE Manufacturer
+ADD CONSTRAINT M_id UNIQUE (manufacturer_id);
+GO
+
+CREATE TABLE Review (
+  review_id INT PRIMARY KEY,
+  consumer_id INT NOT NULL,
+  manufacturer_id INT NOT NULL,
+  rating INT NOT NULL,
+  comment TEXT,
+  created_at DATETIME2 DEFAULT GETDATE(),
+  FOREIGN KEY (consumer_id) REFERENCES Consumer(consumer_id) ON DELETE NO ACTION,
+  FOREIGN KEY (manufacturer_id) REFERENCES Manufacturer(manufacturer_id) ON DELETE CASCADE
+);
+
+CREATE TABLE OnsiteMeetingLocation (
+  location_id INT IDENTITY(1,1) PRIMARY KEY ,
+  manufacturer_id INT NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  created_at DATETIME2 DEFAULT GETDATE(),
+  FOREIGN KEY (manufacturer_id) REFERENCES Manufacturer(manufacturer_id) ON DELETE CASCADE
+);
+
+CREATE TABLE PremiumManufacturer (
+  premium_manufacturer_id INT PRIMARY KEY,
+  manufacturer_id INT NOT NULL,
+  subscription_type VARCHAR(25) NOT NULL CHECK(subscription_type IN ('basic','standard','premium')),
+  subscription_start_date DATE NOT NULL,
+  subscription_end_date DATE NOT NULL,
+  created_at DATETIME2 DEFAULT GETDATE(),
+  FOREIGN KEY (manufacturer_id) REFERENCES Manufacturer(manufacturer_id)  ON DELETE CASCADE
+);
+
+CREATE TABLE PremiumConsumer (
+  premium_consumer_id INT PRIMARY KEY,
+  consumer_id INT NOT NULL,
+  subscription_type VARCHAR(25) NOT NULL CHECK(subscription_type IN ('basic','standard','premium')),
+  subscription_start_date DATE NOT NULL,
+  subscription_end_date DATE NOT NULL,
+  created_at DATETIME2 DEFAULT GETDATE(),
+  FOREIGN KEY (consumer_id) REFERENCES Consumer(consumer_id)  ON DELETE CASCADE
+);
+
+CREATE TABLE HelpLine ( 
+id INT PRIMARY KEY IDENTITY(1,1), 
+email VARCHAR(255) NOT NULL,
+description VARCHAR(255),
+);
+
+CREATE TABLE partnerships ( 
+id INT PRIMARY KEY IDENTITY(1,1),
+manufacturer_id INT NOT NULL,
+partner_company_name VARCHAR(255),
+partner_benefits VARCHAR(255), 
+FOREIGN KEY (manufacturer_id) REFERENCES Manufacturer(manufacturer_id) ON DELETE CASCADE )
+
+--Stored Procedures and views
+CREATE PROCEDURE GetAllRecordsFromTable
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT * FROM Manufacturer; 
+    
+END
+
+CREATE PROCEDURE GetAllRecordsFromTables
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT * FROM Consumer; 
+    
+END
+
+CREATE VIEW Reviewview
+AS
+  SELECT rating , consumer_id
+  FROM Review
+  WHERE rating =4;
+END
+
+CREATE VIEW userview
+AS
+   SELECT username
+   FROM User1
+   WHERE user_type ="C";
+END
+--insert in tables here
+
+--User Data
+INSERT INTO User1 (user_id, username, email, password_hash, user_type)
+VALUES (1, 'john_doe', 'john@gmail.com', 'password_hash', 'M');
+
+
+INSERT INTO User1 (user_id, username, email, password_hash, user_type) 
+VALUES (2, 'wixk_doe', 'wixk@gmail.com', 'password_hash', 'M');
+
+INSERT INTO User1(user_id,username,email,password_hash,user_type)
+Values (3,'Derek_Kim','DerekKim@gmail.com','password_hash','C')
+
+INSERT INTO User1(user_id,username,email,password_hash,user_type)
+Values (4,'Samantha_Wright','samanthawright@email.com','password_hash','C')
+
+
+--Manufacturer Data
+INSERT INTO Manufacturer (MID,manufacturer_id, password_hash, company_name, contact_name, contact_email, contact_phone, website_url, address, rating, is_premium, raw_materials,image)
+VALUES (1,1, 'password_hash', 'ABC Manufacturing', 'John Smith', 'jsmith@abc.com', '555-1234', 'http://www.abcmfg.com', '123 Main St, Anytown USA', 0, 0, 'wood','testimonial-4.jpg' );
+
+INSERT INTO Manufacturer (MID,manufacturer_id, password_hash, company_name, contact_name, contact_email, contact_phone, website_url, address, rating, is_premium, raw_materials,image)
+VALUES (2,2,'password_hash','Starlight Manufacturing LLC','Olivia Davis','oliviadavis@email.com','521-9876','http://www.starlightMac.com','2021 Oakwood Dr, Anytown, USA',0,0, 'steel','testimonial-1.jpg')
+
+
+--Consumer Data
+INSERT INTO Consumer (CID,consumer_id, password_hash, company_name, contact_name, contact_email, contact_phone, website_url, address, rating, is_premium,image)
+VALUES (1,3, 'password_hash', 'XYZ Company', 'Jane Doe', 'jane@xyz.com', '555-5678', 'http://www.xyzco.com', '456 Oak St, Anytown USA', 0, 0,'testimonial-4.jpg');
+
+INSERT INTO Consumer (CID,consumer_id, password_hash, company_name, contact_name, contact_email, contact_phone, website_url, address, rating, is_premium,image)
+VALUES (2,4,'password_hash','GreenPeak Enterprises','Emma Cooper','emmacooper@email.com','387-8881','http://www.greenpeak.com','Times Square, New York, NY 10036, USA',0,0,'testimonial-1.jpg')
+
+
+
+--show data present in tables
+select* from User1
+select* from Manufacturer
+select* from Consumer
+select* from Review
+select* from OnsiteMeetingLocation
+select* from PremiumManufacturer
+select* from PremiumConsumer
+select * from HelpLine
+select * from partnerships
+
+
+
