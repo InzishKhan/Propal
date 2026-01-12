@@ -1,0 +1,25 @@
+{
+  "users": [
+    {
+      "id": "bck9gea4d",
+      "username": "Shirmeen",
+      "email": "shirmeenaamir112@gmail.com",
+      "password": "12345678",
+      "role": "M",
+      "contact_name": "Shirmeen Aamir Aamir",
+      "contact_email": "shirmeenkhadija@gmail.com",
+      "company_name": "hello",
+      "website_url": "hello@hmail.com",
+      "address": "34 old rifle range road chauburji lahore",
+      "contact_phone": "03166370030",
+      "raw_materials": "bread",
+      "image": "image (1).png",
+      "rating": 0,
+      "is_premium": false,
+      "meeting_locations": []
+    }
+  ],
+  "reviews": [],
+  "partnerships": [],
+  "support": []
+}

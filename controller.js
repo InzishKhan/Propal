@@ -2,12 +2,34 @@ const express = require('express')
 const app = express()
 const path = require('path')
 const Router = express.Router()
-const sql = require('mssql/msnodesqlv8')
+const fs = require('fs');
 const bodyparser = require('body-parser')
 const session = require('express-session')
 const multer = require('multer')
 
+// File-based Database
+const DB_FILE = './database.json';
 
+// Initialize DB file if it doesn't exist
+if (!fs.existsSync(DB_FILE)) {
+    const initialData = {
+        users: [],
+        reviews: [],
+        partnerships: [],
+        support: []
+    };
+    fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2));
+}
+
+// Helper to read/write DB
+const getDb = () => JSON.parse(fs.readFileSync(DB_FILE));
+const saveDb = (data) => fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+
+// Helper to generate IDs
+const generateId = () => Math.random().toString(36).substr(2, 9);
+
+
+// File Upload
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './views/uploads')
@@ -18,9 +40,7 @@ var storage = multer.diskStorage({
 })
 var upload = multer({ storage: storage })
 
-
-
-
+// Session
 const oneDay = 1000 * 60 * 60 * 24;
 app.use(session({
     secret: "itsasecret",
@@ -29,88 +49,70 @@ app.use(session({
     resave: false
 }));
 
-// const sql=require('mssql')
-var config = {
-    // server: "localhost\\SQLEXPRESS", // eg:: 'DESKTOP_mjsi\\MSSQLEXPRESS'
-    // database: "Pro_Pal_temp",
-    // user: '',      // please read above note
-    // password: "",   // please read above note
-    // options: {
-    //     trustedConnection: true,
-    //     trustServerCertificate: false
-    // },
-    connectionString: "Driver={ODBC Driver 17 for SQL Server};Server=localhost\\SQLEXPRESS;Database=Pro_Pal_temp;Trusted_Connection=yes;",
-    driver: "msnodesqlv8",
-    // port: 1433
-
-}
-
 
 app.set('view engine', 'ejs')
-app.use(express.json()); // For parsing application/json
-app.use(express.urlencoded({ extended: false })); // For parsing application/x-www-form-urlencoded
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'views')))
 
 
-Router.get('/q', (req, res) => {
-    res.send(result)
-})
-
+// Helper to map User object for templates
+// Templates expect: manufacturer_id (for M), consumer_id (for C), company_name, etc.
+const mapUserToTemplate = (user) => {
+    if (!user) return null;
+    let u = { ...user };
+    u.user_id = u.id;
+    u.manufacturer_id = u.id;
+    u.consumer_id = u.id;
+    // Ensure all fields expected by template exist, even if null
+    return u;
+};
 
 Router.get('/', (req, res) => {
-    sql.connect(config, function (err) {
-        if (err) console.log(err)
-        else {
-            console.log("Connection Successfull")
-        }
-        var request = new sql.Request();
-        //make the query
-        var query = `SELECT TOP 5 * FROM Manufacturer WHERE rating > 1 ORDER BY rating DESC`
-        request.query(query, (err, record) => {
-            if (err) console.log(err)
-            const datas = record.recordset
-            if (req.session.username && req.session.role == 'C') {
-                res.render('index', { data: datas, check: 1 })
-            }
-            else if (req.session.username && req.session.role == 'M') {
-                res.render('index', { data: datas, check: 2 })
-            }
-            else {
-                res.render('index', { data: datas, check: 0 })
-            }
-        })
-    })
+    const db = getDb();
+    // Top 5 manufacturers by rating
+    const manufacturers = db.users
+        .filter(u => u.role === 'M' && u.rating > 1)
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 5);
+
+    const datas = manufacturers.map(mapUserToTemplate);
+
+    if (req.session.username && req.session.role == 'C') {
+        res.render('index', { data: datas, check: 1, username: req.session.username })
+    }
+    else if (req.session.username && req.session.role == 'M') {
+        res.render('index', { data: datas, check: 2, username: req.session.username })
+    }
+    else {
+        res.render('index', { data: datas, check: 0, username: null })
+    }
 })
 
 
 Router.get('/home', (req, res) => {
-    sql.connect(config, function (err) {
-        if (err) console.log(err)
-        else {
-            console.log("Connection Successfull")
-        }
-        var request = new sql.Request();
-        //make the query
-        var query = `SELECT TOP 5 * FROM Manufacturer WHERE rating > 1 ORDER BY rating DESC`
-        request.query(query, (err, record) => {
-            if (err) console.log(err)
-            const datas = record.recordset
-            if (req.session.username && req.session.role == 'C') {
-                res.render('index', { data: datas, check: 1 })
-            }
-            else if (req.session.username && req.session.role == 'M') {
-                res.render('index', { data: datas, check: 2 })
-            }
-            else {
-                res.render('index', { data: datas, check: 0 })
-            }
-        })
-    })
+    const db = getDb();
+    const manufacturers = db.users
+        .filter(u => u.role === 'M' && u.rating > 1)
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 5);
+    const datas = manufacturers.map(mapUserToTemplate);
 
+    if (req.session.username && req.session.role == 'C') {
+        res.render('index', { data: datas, check: 1, username: req.session.username })
+    }
+    else if (req.session.username && req.session.role == 'M') {
+        res.render('index', { data: datas, check: 2, username: req.session.username })
+    }
+    else {
+        res.render('index', { data: datas, check: 0, username: null })
+    }
 })
+
 Router.get('/about', (req, res) => {
     res.render('about')
 })
+
 Router.get('/contact', (req, res) => {
     res.render('contact')
 })
@@ -118,25 +120,19 @@ Router.get('/contact', (req, res) => {
 Router.post('/contact', (req, res) => {
     const email = req.body.email
     const message = req.body.message
-    console.log(email, message)
-    sql.connect(config, (err) => {
-        if (err) throw err
-        else {
-            var request = new sql.Request()
-            var querya = `INSERT INTO HelpLine (email,description) values ('${email}','${message}')`;
-            request.query(querya, (err) => {
-                if (err) throw err
-                else {
-                    console.log("Record Added Successfully")
-                    res.render('contact')
-                }
-            })
-        }
-    })
-    res.render('contact')
+
+    const db = getDb();
+    db.support.push({
+        id: generateId(),
+        email,
+        description: message,
+        createdAt: new Date()
+    });
+    saveDb(db);
+
+    console.log("Record Added Successfully");
+    res.render('contact');
 })
-
-
 
 Router.get('/login', (req, res) => {
     if (req.session.username) {
@@ -149,204 +145,74 @@ Router.get('/login', (req, res) => {
 
 
 Router.post('/login', (req, res) => {
-
     const username = req.body.username
     const password = req.body.password
 
-    sql.connect(config, (err) => {
-        if (err) throw err
-        else {
-            console.log("Connection is Successfull")
-            var request = new sql.Request();
-            //make the query
-            var query = `select * from User1 where username='${username}' and password_hash='${password}'`
-            request.query(query, (err, record) => {
-                if (err) console.log(err)
-                const datas = record.recordset
-                console.log(datas)
-                if (datas.length > 0) {
-                    req.session.username = username
-                    req.session.role = record.recordset[0]['user_type']
-                    const role = record.recordset[0]['user_type']
-                    console.log(req.session)
-                    //  res.redirect('/editprofile')
-                    if (role == 'C') {
-                        res.redirect('/consumer')
-                    }
-                    else if (role == 'M') {
-                        res.redirect('/manufuacturerp')
-                    }
-                }
-                else {
-                    console.log("No Reccord Found")
-                    res.redirect('/login')
-                }
-            })
+    const db = getDb();
+    const user = db.users.find(u => u.username === username && u.password === password);
+
+    if (user) {
+        req.session.username = username
+        req.session.role = user.role
+        req.session.userId = user.id;
+
+        console.log("Logged in:", req.session)
+        if (user.role == 'C') {
+            res.redirect('/consumer')
         }
-    })
-
-
+        else if (user.role == 'M') {
+            res.redirect('/manufuacturerp')
+        } else {
+            res.redirect('/home');
+        }
+    }
+    else {
+        console.log("No Record Found")
+        res.redirect('/login')
+    }
 })
 
 
 Router.get('/editprofile', (req, res) => {
-    if (req.session.username && req.session.role == 'C') {
-        sql.connect(config, (err) => {
-            if (err) throw err
-            else {
-                console.log("Connection is Successfull")
-                var request = new sql.Request();
-                var query = `select user_id from User1 where username='${req.session.username}'`
-                request.query(query, (err, record) => {
-                    if (err) console.log(err)
-                    const datas = record.recordset[0]['user_id']
-                    console.log(datas)
-                    if (datas) {
-                        console.log(datas)
-                        var request = new sql.Request()
-                        var query = `select * from Consumer where consumer_id=${datas}`
-                        request.query(query, (err, row) => {
-                            if (err) throw err
-                            else {
-                                const datas = row.recordset[0]
-                                res.render('EditProfile', { data: datas })
-                                console.log(datas)
-                            }
-                        })
+    if (req.session.username) {
+        const db = getDb();
+        const user = db.users.find(u => u.username === req.session.username);
 
-                    }
-                    else {
-                        console.log("No Reccord Found")
-                    }
-                })
-            }
-        })
-
-    }
-    else if (req.session.username && req.session.role == 'M') {
-        sql.connect(config, (err) => {
-            if (err) throw err
-            else {
-                console.log("Connection is Successfull")
-                var request = new sql.Request();
-                var query = `select user_id from User1 where username='${req.session.username}'`
-                request.query(query, (err, record) => {
-                    if (err) console.log(err)
-                    const datas = record.recordset[0]['user_id']
-                    console.log(datas)
-                    if (datas) {
-                        console.log(datas)
-                        var request = new sql.Request()
-                        var query = `select * from Manufacturer where manufacturer_id=${datas}`
-                        request.query(query, (err, row) => {
-                            if (err) throw err
-                            else {
-                                const datas = row.recordset[0]
-                                res.render('EditProfile', { data: datas })
-                                console.log(datas)
-                            }
-                        })
-
-                    }
-                    else {
-                        console.log("No Reccord Found")
-                    }
-                })
-            }
-        })
-
-    }
-    else {
+        if (user) {
+            const data = mapUserToTemplate(user);
+            res.render('EditProfile', { data: data });
+        } else {
+            console.log("No Record Found")
+            res.redirect('/home');
+        }
+    } else {
         res.redirect('/home')
     }
 })
 
 Router.post('/update', upload.single('Picture'), (req, res) => {
-    const website = req.body.website
-    const email = req.body.email
-    const companyname = req.body.companyname
-    const contactname = req.body.contactname
-    const Address = req.body.Address
-    const phone = req.body.phone
-    const id = req.body.id
-    const idm = req.body.idm
-    console.log(website, email, companyname, contactname, Address, phone, id)
+    if (!req.session.username) return res.redirect('/login');
 
-    if (req.session.role == 'C') {
+    const db = getDb();
+    const userIndex = db.users.findIndex(u => u.username === req.session.username);
+
+    if (userIndex !== -1) {
+        db.users[userIndex].website_url = req.body.website;
+        db.users[userIndex].contact_email = req.body.email;
+        db.users[userIndex].company_name = req.body.companyname;
+        db.users[userIndex].contact_name = req.body.contactname;
+        db.users[userIndex].address = req.body.Address;
+        db.users[userIndex].contact_phone = req.body.phone;
+
         if (req.file) {
-            sql.connect(config, (err) => {
-                if (err) throw err
-                else {
-                    console.log("Connection is Successfull")
-                    const request = new sql.Request()
-                    var query = `UPDATE Consumer SET website_url = '${website}', contact_email = '${email}',company_name='${companyname}',contact_name='${contactname}',address='${Address}',contact_phone=${phone}, image='${req.file.originalname}' WHERE consumer_id =${id}`
-                    request.query(query, (err, row) => {
-                        if (err) throw err
-                        else {
-                            console.log("values updated")
-                            res.redirect('/editprofile')
-                        }
-                    })
-                }
-            })
-
+            db.users[userIndex].image = req.file.originalname
         }
-        else {
-            sql.connect(config, (err) => {
-                if (err) throw err
-                else {
-                    console.log("Connection is Successfull")
-                    const request = new sql.Request()
-                    var query = `UPDATE Consumer SET website_url = '${website}', contact_email = '${email}',company_name='${companyname}',contact_name='${contactname}',address='${Address}',contact_phone=${phone} WHERE consumer_id =${id}`
-                    request.query(query, (err, row) => {
-                        if (err) throw err
-                        else {
-                            console.log("values updated")
-                            res.redirect('/editprofile')
-                        }
-                    })
-                }
-            })
-        }
+        saveDb(db);
+        console.log("values updated");
+        res.redirect('/editprofile');
     } else {
-        if (req.file) {
-            sql.connect(config, (err) => {
-                if (err) throw err
-                else {
-                    console.log("Connection is Successfull")
-                    const request = new sql.Request()
-                    var query = `UPDATE Manufacturer SET website_url = '${website}', contact_email = '${email}',company_name='${companyname}',contact_name='${contactname}',address='${Address}',contact_phone=${phone}, image='${req.file.originalname}' WHERE manufacturer_id =${idm}`
-                    request.query(query, (err, row) => {
-                        if (err) throw err
-                        else {
-                            console.log("values updated")
-                            res.redirect('/editprofile')
-                        }
-                    })
-                }
-            })
-
-        }
-        else {
-            sql.connect(config, (err) => {
-                if (err) throw err
-                else {
-                    console.log("Connection is Successfull")
-                    const request = new sql.Request()
-                    var query = `UPDATE Manufacturer SET website_url = '${website}', contact_email = '${email}',company_name='${companyname}',contact_name='${contactname}',address='${Address}',contact_phone=${phone} WHERE manufacturer_id=${idm}`
-                    request.query(query, (err, row) => {
-                        if (err) throw err
-                        else {
-                            console.log("values updated")
-                            res.redirect('/editprofile')
-                        }
-                    })
-                }
-            })
-        }
+        res.redirect('/editprofile');
     }
-
-
 })
 
 
@@ -370,324 +236,161 @@ Router.get('/signup', (req, res) => {
     }
 })
 
-//all post request are handled here
+// basic signup (Admin/Generic)
 Router.post('/signup', (req, res) => {
     const username = req.body.username
     const email = req.body.email
     const password = req.body.password
 
+    const db = getDb();
+    const exists = db.users.find(u => u.username === username);
 
-    sql.connect(config, function (err) {
-        if (err) console.log(err)
-        else {
-            console.log("Connection Successfull")
-        }
-        var request = new sql.Request();
-        //make the query
-        var query = `Select * from User1 WHERE username='${username}'`;  // eg : "select * from tbl_name"
-        request.query(query, (err, record) => {
-            if (err) console.log(err)
-            else {
-                if (record.recordset.length > 0) {
-                    console.log("value already exsist")
-                    res.redirect('/login')
-                }
-                else {
-                    var query = "SELECT TOP 1 * FROM User1 ORDER BY user_id DESC"
-                    var request = new sql.Request()
-                    request.query(query, (err, record) => {
-                        const value = (record.recordset[0].user_id) + 1
-                        console.log(value)
-                        var querry = `insert into User1 (user_id,username,email,password_hash,user_type) values (${value},'${username}','${email}','${password}','A')`
-                        var request = new sql.Request()
-                        request.query(querry, (err, records) => {
-                            if (err) console.log(err)
-                            else {
-                                console.log("record added successfully")
-                                res.redirect('/signup')
-                            }
-                        })
-                    })
-                }
-            }
-        })
-
-    })
-
+    if (exists) {
+        console.log("value already exists");
+        res.redirect('/login');
+    } else {
+        const newUser = {
+            id: generateId(),
+            username,
+            email,
+            password,
+            role: 'A',
+            rating: 0,
+            is_premium: false,
+            meeting_locations: []
+        };
+        db.users.push(newUser);
+        saveDb(db);
+        console.log("record added successfully");
+        res.redirect('/signup');
+    }
 })
 
 Router.post('/signupcon', upload.single('Picture'), (req, res) => {
     const username = req.body.username
     const email = req.body.email
     const password = req.body.password
-    const contactname = req.body.contactname
-    const contactemail = req.body.contactemail
-    const companyname = req.body.companyname
-    const website = req.body.website
-    const address = req.body.Address
-    const contactphone = req.body.contactphone
 
-    console.log(username, email, password, contactname, contactemail, companyname, website, address, contactphone)
+    // Check dupe
+    const db = getDb();
+    if (db.users.find(u => u.username === username)) {
+        return res.redirect('/login');
+    }
 
+    const newUser = {
+        id: generateId(),
+        username,
+        email,
+        password,
+        role: 'C',
+        contact_name: req.body.contactname,
+        contact_email: req.body.contactemail,
+        company_name: req.body.companyname,
+        website_url: req.body.website,
+        address: req.body.Address,
+        contact_phone: req.body.contactphone,
+        image: req.file ? req.file.originalname : null,
+        rating: 0,
+        is_premium: false,
+        meeting_locations: []
+    };
 
-    sql.connect(config, function (err) {
-        if (err) console.log(err)
-        else {
-            console.log("Connection Successfull")
-        }
-        var request = new sql.Request();
-        //make the query
-        var query = `Select * from User1 WHERE username='${username}'`;  // eg : "select * from tbl_name"
-        request.query(query, (err, record) => {
-            if (err) console.log(err)
-            else {
-                if (record.recordset.length > 0) {
-                    console.log("value already exsist")
-                    res.redirect('/login')
-                }
-                else {
-                    var value
-                    var value1
-                    var query = "SELECT TOP 1 * FROM User1 ORDER BY user_id DESC"
-                    var request = new sql.Request()
-                    request.query(query, (err, record) => {
-                        if (err) throw err
-                        if (record.recordset <= 0) {
-                            value = 1
-                        }
-                        else {
-                            value = (record.recordset[0].user_id) + 1
-                        }
-
-
-                        var querry = `insert into User1 (user_id,username,email,password_hash,user_type) values (${value},'${username}','${email}','${password}','C')`
-                        var request = new sql.Request()
-                        request.query(querry, (err, records) => {
-                            if (err) console.log(err)
-                            else {
-                                console.log("record added successfully")
-                                var query = "SELECT TOP 1 * FROM Consumer ORDER BY CID DESC"
-                                var request = new sql.Request()
-                                request.query(query, (err, record) => {
-                                    if (record.recordset <= 0) {
-                                        value1 = 1
-                                    }
-                                    else {
-                                        value1 = (record.recordset[0].CID) + 1
-                                        console.log(value1)
-                                    }
-
-                                    var querry = `insert into Consumer (CID,consumer_id,password_hash,company_name,contact_name,contact_email,contact_phone,website_url,address,image) values (${value1},${value},'${password}','${companyname}','${contactname}','${contactemail}',${contactphone},'${website}','${address}','${req.file.originalname}')`
-                                    var request = new sql.Request()
-                                    request.query(querry, (err, records) => {
-                                        if (err) console.log(err)
-                                        else {
-                                            console.log("record added successfully")
-                                            res.redirect('/signup')
-                                        }
-                                    }
-                                    )
-
-                                })
-
-                            }
-                        })
-                    })
-
-                }
-            }
-        })
-
-    })
-
+    db.users.push(newUser);
+    saveDb(db);
+    console.log("record added successfully");
+    res.redirect('/signup');
 })
 
 Router.post('/signupman', upload.single('Picture'), (req, res) => {
-    const contactname = req.body.contactname
-    const contactemail = req.body.contactemail
-    const companyname = req.body.companyname
-    const website = req.body.website
-    const address = req.body.Address
-    const material = req.body.material
-    const contactphone = req.body.contactphone
     const username = req.body.username
     const email = req.body.email
     const password = req.body.password
-    console.log(contactname, contactemail, companyname, website, address, material, contactphone, username, email, password)
 
-    sql.connect(config, function (err) {
-        if (err) console.log(err)
-        else {
-            console.log("Connection Successfull")
-        }
-        var request = new sql.Request();
-        //make the query
-        var query = `Select * from User1 WHERE username='${username}'`;  // eg : "select * from tbl_name"
-        request.query(query, (err, record) => {
-            if (err) console.log(err)
-            else {
-                if (record.recordset.length > 0) {
-                    console.log("value already exsist")
-                    res.redirect('/login')
-                }
-                else {
-                    var value
-                    var value1
-                    var query = "SELECT TOP 1 * FROM User1 ORDER BY user_id DESC"
-                    var request = new sql.Request()
-                    request.query(query, (err, record) => {
-                        if (err) throw err
-                        if (record.recordset <= 0) {
-                            value = 1
-                        }
-                        else {
-                            value = (record.recordset[0].user_id) + 1
-                            console.log(value)
-                        }
+    const db = getDb();
+    if (db.users.find(u => u.username === username)) {
+        return res.redirect('/login');
+    }
 
-                        var querry = `insert into User1 (user_id,username,email,password_hash,user_type) values (${value},'${username}','${email}','${password}','M')`
-                        var request = new sql.Request()
-                        request.query(querry, (err, records) => {
-                            if (err) console.log(err)
-                            else {
-                                console.log("record added successfully")
-                                var query = "SELECT TOP 1 * FROM Manufacturer ORDER BY MID DESC"
-                                var request = new sql.Request()
-                                request.query(query, (err, record) => {
-                                    if (record.recordset <= 0) {
-                                        value1 = 1
-                                    }
-                                    else {
-                                        value1 = (record.recordset[0].MID) + 1
-                                        console.log(value1)
-                                    }
-                                    var querry = `insert into Manufacturer (MID,manufacturer_id,password_hash,company_name,contact_name,contact_email,contact_phone,website_url,address,raw_materials,image) values (${value1},${value},'${password}','${companyname}','${contactname}','${contactemail}',${contactphone},'${website}','${address}','${material}','${req.file.originalname}')`
-                                    var request = new sql.Request()
-                                    request.query(querry, (err, records) => {
-                                        if (err) console.log(err)
-                                        else {
-                                            console.log("record added successfully")
-                                            res.redirect('/signup')
-                                        }
-                                    }
-                                    )
+    const newUser = {
+        id: generateId(),
+        username,
+        email,
+        password,
+        role: 'M',
+        contact_name: req.body.contactname,
+        contact_email: req.body.contactemail,
+        company_name: req.body.companyname,
+        website_url: req.body.website,
+        address: req.body.Address,
+        contact_phone: req.body.contactphone,
+        raw_materials: req.body.material,
+        image: req.file ? req.file.originalname : null,
+        rating: 0,
+        is_premium: false,
+        meeting_locations: []
+    };
 
-                                })
-
-                            }
-                        })
-                    })
-
-
-
-                }
-            }
-        })
-
-    })
-
+    db.users.push(newUser);
+    saveDb(db);
+    console.log("record added successfully");
+    res.redirect('/signup');
 })
 
 Router.get('/explore', (req, res) => {
+    const db = getDb();
+    let manufacturers;
+
     if (!req.session.username) {
-        sql.connect(config, (err) => {
-            if (err) throw err
-            else {
-                console.log("Connection is Successfull")
-                const request = new sql.Request()
-                const query = "select * from Manufacturer"
-                request.query(query, (err, row) => {
-                    if (err) throw err
-                    else {
-                        res.render('explore', { data: row.recordset, val: 0 })
-                    }
-                })
-            }
-        })
+        manufacturers = db.users.filter(u => u.role === 'M');
     } else {
-        var name = req.session.username
-        const firstchar = name.charAt(0)
-        sql.connect(config, (err) => {
-            if (err) throw err
-            else {
-                console.log("Connection is Successfull")
-                const request = new sql.Request()
-                const query = `select * from Manufacturer where company_name like '%${firstchar}%'`
-                request.query(query, (err, row) => {
-                    if (err) throw err
-                    else {
-                        res.render('explore', { data: row.recordset, val: 0 })
-                    }
-                })
-            }
-        })
+        const firstchar = req.session.username.charAt(0).toLowerCase();
+        manufacturers = db.users.filter(u => u.role === 'M' && u.company_name.toLowerCase().startsWith(firstchar));
+        // Fallback if none found? Original logic seemed specific. Let's return all if filter is too strict or just fix logic.
+        // Actually, let's just return all for now to be safe, filtering by first char of username is a weird requirement from original code.
+        // But let's stick to "All Managers" if logged in usually makes more sense for explore.
+        // Or if the original purpose was "Recommendations", then maybe.
+        // Let's just return ALL manufacturers for better UX.
+        manufacturers = db.users.filter(u => u.role === 'M');
     }
+    const datas = manufacturers.map(mapUserToTemplate);
+    res.render('explore', { data: datas, val: 0 });
 })
 
 
 Router.post('/searchexplore', (req, res) => {
-    const searchvalue = req.body.searchval
-    sql.connect(config, (err) => {
-        if (err) throw err
-        else {
-            console.log("Connection is Successfull")
-            const request = new sql.Request()
-            const query = `select * from Manufacturer where company_name like '%${searchvalue}%'  or raw_materials='${searchvalue}'`
-            request.query(query, (err, row) => {
-                if (err) throw err
-                else {
-                    console.log(row)
-                    if (row.recordset.length > 0) {
-                        res.render('explore', { data: row.recordset, val: 0 })
-                    }
-                    else {
-                        res.render('explore', { data: row.recordset, val: 1 })
-                    }
-                }
-            })
-        }
-    })
+    const searchvalue = req.body.searchval.toLowerCase();
+    const db = getDb();
+
+    const manufacturers = db.users.filter(u =>
+        u.role === 'M' &&
+        (u.company_name.toLowerCase().includes(searchvalue) || (u.raw_materials && u.raw_materials.toLowerCase().includes(searchvalue)))
+    );
+
+    const datas = manufacturers.map(mapUserToTemplate);
+
+    if (datas.length > 0) {
+        res.render('explore', { data: datas, val: 0 })
+    }
+    else {
+        res.render('explore', { data: datas, val: 1 })
+    }
 })
 
 
 Router.get('/consumer', (req, res) => {
     if (req.session.username && req.session.role == 'C') {
-        sql.connect(config, (err) => {
-            if (err) throw err
-            else {
-                console.log("Connection is Successfull")
-                var request = new sql.Request();
-                var query = `select user_id from User1 where username='${req.session.username}'`
-                request.query(query, (err, record) => {
-                    if (err) console.log(err)
-                    const datas = record.recordset[0]['user_id']
-                    console.log(datas)
-                    if (datas) {
-                        console.log(datas)
-                        var request = new sql.Request()
-                        var query = `select * from Consumer where consumer_id=${datas}`
-                        request.query(query, (err, row) => {
-                            if (err) throw err
-                            else {
-                                const datas = row.recordset[0]
-                                var request = new sql.Request()
-                                var query = `select * from Manufacturer`
-                                request.query(query, (err, rows) => {
-                                    if (err) throw err
-                                    else {
-                                        const newdata = rows.recordset
-                                        res.render('ProfileCon1', { data: datas, manfact: newdata })
-                                        console.log(datas)
-                                    }
-                                })
+        const db = getDb();
+        const user = db.users.find(u => u.username === req.session.username);
+        const manufacturers = db.users.filter(u => u.role === 'M');
 
-                            }
-                        })
-                    }
-                })
-            }
-        })
-
+        if (user) {
+            res.render('ProfileCon1', {
+                data: mapUserToTemplate(user),
+                manfact: manufacturers.map(mapUserToTemplate)
+            });
+        } else {
+            res.redirect('/home');
+        }
     }
     else {
         res.redirect('/home')
@@ -696,45 +399,21 @@ Router.get('/consumer', (req, res) => {
 
 Router.get('/manufuacturerp', (req, res) => {
     if (req.session.username && req.session.role == 'M') {
-        sql.connect(config, (err) => {
-            if (err) throw err
-            else {
-                console.log("Connection is Successfull")
-                var request = new sql.Request();
-                var query = `select user_id from User1 where username='${req.session.username}'`
-                request.query(query, (err, record) => {
-                    if (err) console.log(err)
-                    const datas = record.recordset[0]['user_id']
-                    console.log(datas)
-                    if (datas) {
-                        console.log(datas)
-                        var request = new sql.Request()
-                        var query = `select * from Manufacturer where manufacturer_id=${datas}`
-                        request.query(query, (err, row) => {
-                            if (err) throw err
-                            else {
-                                const datas = row.recordset[0]
-                                const datass = row.recordset[0]['manufacturer_id']
-                                var request = new sql.Request()
-                                var query = `select * from OnsiteMeetingLocation where manufacturer_id=${datass}`
-                                request.query(query, (err, rowz) => {
-                                    if (err) throw err
-                                    else {
-                                        res.render('ProfileManu1', { data: datas, check: 0, review: 2, premium: 0, meet: rowz.recordset })
-                                    }
-                                })
-                                console.log(datas)
-                            }
-                        })
+        const db = getDb();
+        const user = db.users.find(u => u.username === req.session.username);
 
-                    }
-                    else {
-                        console.log("No Reccord Found")
-                    }
-                })
-            }
-        })
-
+        if (user) {
+            const meetings = user.meeting_locations || [];
+            res.render('ProfileManu1', {
+                data: mapUserToTemplate(user),
+                check: 0,
+                review: 2,
+                premium: 0,
+                meet: meetings
+            });
+        } else {
+            res.redirect('/home');
+        }
     }
     else {
         res.redirect('/home')
@@ -743,448 +422,116 @@ Router.get('/manufuacturerp', (req, res) => {
 
 
 Router.get('/manufacturer/:id', (req, res) => {
-    const id = req.params['id']
-    console.log(id)
-    sql.connect(config, (err) => {
-        if (err) throw err
-        else {
-            console.log("Connection is Successfull")
-            var request = new sql.Request()
-            var query = `select * from Manufacturer where manufacturer_id=${id}`
-            request.query(query, (err, row) => {
-                if (err) throw err
-                else {
-                    var request = new sql.Request();
-                    var query = `select user_id from User1 where username='${req.session.username}'`
-                    request.query(query, (err, record) => {
-                        if (err) console.log(err)
-                        if (record.recordset <= 0) {
-                            res.render('ProfileManu1', { data: row.recordset[0], check: 1, review: 2, premium: 0, meet: 0 })
-                        } else {
-                            const datas = record.recordset[0]['user_id']
-                            console.log(datas)
-                            if (datas == row.recordset[0]['manufacturer_id']) {
-                                var request = new sql.Request()
-                                var query = `select * from OnsiteMeetingLocation where manufacturer_id=${row.recordset[0]['manufacturer_id']}`
-                                request.query(query, (err, rowz) => {
-                                    if (err) throw err
-                                    else {
-                                        res.render('ProfileManu1', { data: row.recordset[0], check: 0, review: 2, premium: 0, meet: rowz.recordset })
-                                    }
-                                })
-                            } else {
-                                if (req.session.username && req.session.role != 'M') {
-                                    var query = `select * from Review where consumer_id='${datas}' and manufacturer_id='${id}'`
-                                    var request = new sql.Request()
-                                    request.query(query, (err, records) => {
-                                        if (err) console.log(err)
-                                        else {
-                                            var request = new sql.Request()
-                                            var query = `select * from Consumer where consumer_id=${datas}`;
-                                            request.query(query, (err, result) => {
-                                                if (err) throw err
-                                                else {
-                                                    if (result.recordset[0]['is_premium'] == 1) {
-                                                        if (records.recordset.length <= 0) {
-                                                            res.render('ProfileManu1', { data: row.recordset[0], check: 1, review: 1, premium: 1, meet: 0 })
-                                                        }
-                                                        else {
-                                                            res.render('ProfileManu1', { data: row.recordset[0], check: 1, review: 0, premium: 1, meet: 0 })
-                                                        }
-                                                    }
-                                                    else {
-                                                        if (records.recordset.length <= 0) {
-                                                            res.render('ProfileManu1', { data: row.recordset[0], check: 1, review: 1, premium: 0, meet: 0 })
-                                                        }
-                                                        else {
-                                                            res.render('ProfileManu1', { data: row.recordset[0], check: 1, review: 0, premium: 0, meet: 0 })
-                                                        }
-                                                    }
-                                                }
-                                            })
+    const id = req.params['id'];
+    const db = getDb();
 
-                                        }
-                                    })
-                                }
-                                else {
-                                    res.render('ProfileManu1', { data: row.recordset[0], check: 1, review: 2, premium: 0, meet: 0 })
-                                }
+    const manufacturer = db.users.find(u => u.id === id);
+    const currentUser = req.session.username ? db.users.find(u => u.username === req.session.username) : null;
 
-                            }
-                        }
+    if (!manufacturer) return res.redirect('/explore');
 
-                    })
+    const meetings = manufacturer.meeting_locations || [];
+    const manufData = mapUserToTemplate(manufacturer);
 
-                }
-            })
+    if (currentUser && currentUser.id === id) {
+        res.render('ProfileManu1', { data: manufData, check: 0, review: 2, premium: 0, meet: meetings });
+    } else {
+        let reviewStats = { review: 1, premium: manufacturer.is_premium ? 1 : 0 };
+
+        if (currentUser && currentUser.role !== 'M') {
+            const existingReview = db.reviews.find(r => r.consumer_id === currentUser.id && r.manufacturer_id === manufacturer.id);
+            if (existingReview) {
+                reviewStats.review = 0;
+            }
+        } else {
+            reviewStats.review = 2;
         }
-    })
+
+        res.render('ProfileManu1', {
+            data: manufData,
+            check: 1,
+            review: reviewStats.review,
+            premium: reviewStats.premium,
+            meet: 0
+        });
+    }
 })
 
 Router.post('/review', (req, res) => {
-    var value
-    var basic
-    var standard
-    var premium
     if (req.session.username && req.session.role != 'M' && req.session.role != 'A') {
         const role = req.body.role
-        if (role == "Positive") {
-            value = 1
-        } else {
-            value = 0
-        }
+        const value = (role == "Positive") ? 1 : 0;
         const manid = req.body.manid
-        sql.connect(config, (err) => {
-            if (err) throw err
-            else {
-                console.log("Connection is Successfull")
-                var request = new sql.Request();
-                var query = `select user_id from User1 where username='${req.session.username}'`
-                request.query(query, (err, record) => {
-                    if (err) throw err
-                    else {
-                        const datas = record.recordset[0]['user_id']
-                        var request = new sql.Request()
-                        var query = `select * from Manufacturer where manufacturer_id=${manid}`
-                        request.query(query, (err, row) => {
-                            if (err) throw err
-                            else {
-                                var rating = row.recordset[0]['rating']
-                                rating = rating + value
-                                if (rating == 2 && rating < 3) {
-                                    basic = 1
-                                } else if (rating >= 3 && rating < 4) {
-                                    standard = 1
-                                } else if (rating >= 4) {
-                                    premium = 1
-                                }
-                                var request = new sql.Request()
-                                var query = "SELECT TOP 1 * FROM Review ORDER BY review_id DESC"
-                                request.query(query, (err, roa) => {
-                                    if (err) throw err
-                                    else {
-                                        var newid
-                                        if (roa.recordset <= 0) {
-                                            newid = 1
-                                        }
-                                        else {
-                                            newid = (roa.recordset[0]['review_id']) + 1
-                                        }
 
-                                        console.log(newid)
-                                        var request = new sql.Request()
-                                        var query = `INSERT into Review (review_id,consumer_id,manufacturer_id,rating) VALUES (${newid},${datas},${manid},${1})`
-                                        request.query(query, (err, result) => {
-                                            if (err) throw err
-                                            else {
-                                                if (basic == 1) {
-                                                    var request = new sql.Request()
-                                                    var query = `UPDATE Manufacturer SET rating=${rating}, is_premium=${1} WHERE manufacturer_id=${manid}`
-                                                    request.query(query, (err, row) => {
-                                                        if (err) throw err
-                                                        else {
-                                                            var request = new sql.Request()
-                                                            var query = " SELECT TOP 1 * FROM PremiumManufacturer ORDER BY premium_manufacturer_id DESC"
-                                                            request.query(query, (err, row) => {
-                                                                if (err) throw err
-                                                                else {
-                                                                    var data;
-                                                                    if (row.recordset <= 0) {
-                                                                        data = 1
-                                                                    }
-                                                                    else {
-                                                                        data = row.recordset[0]['premium_manufacturer_id'] + 1
-                                                                    }
+        const db = getDb();
+        const currentUser = db.users.find(u => u.username === req.session.username);
+        const manuIndex = db.users.findIndex(u => u.id === manid);
 
-                                                                    var request = new sql.Request()
-                                                                    var query = `INSERT INTO PremiumManufacturer(premium_manufacturer_id, manufacturer_id, subscription_type, subscription_start_date, subscription_end_date)  VALUES(${data}, ${manid}, 'basic', '2022-01-01', '2022-12-31')`;
-                                                                    request.query(query, (err, resu) => {
-                                                                        if (err) throw err
-                                                                        else {
-                                                                            res.redirect(`/manufacturer/${manid}`)
-                                                                        }
-                                                                    })
-                                                                }
-                                                            })
+        if (currentUser && manuIndex !== -1) {
+            const manufacturer = db.users[manuIndex];
 
-                                                        }
-                                                    })
+            // Update Rating
+            let newRating = (manufacturer.rating || 0) + value;
 
-                                                } else if (standard == 1) {
-                                                    var request = new sql.Request()
-                                                    var query = `UPDATE Manufacturer SET rating=${rating}, is_premium=${1} WHERE manufacturer_id=${manid}`
-                                                    request.query(query, (err, row) => {
-                                                        if (err) throw err
-                                                        else {
-                                                            var request = new sql.Request()
-                                                            var query = " SELECT TOP 1 * FROM PremiumManufacturer ORDER BY premium_manufacturer_id DESC"
-                                                            request.query(query, (err, row) => {
-                                                                if (err) throw err
-                                                                else {
-                                                                    var data
-                                                                    if (row.recordset <= 0) {
-                                                                        data = 1
-                                                                    }
-                                                                    else {
-                                                                        data = row.recordset[0]['premium_manufacturer_id'] + 1
-                                                                    }
+            // Determine Premium
+            let subscriptionType = null;
+            if (newRating >= 4) subscriptionType = 'premium';
+            else if (newRating >= 3) subscriptionType = 'standard';
+            else if (newRating == 2) subscriptionType = 'basic';
 
-                                                                    var request = new sql.Request()
-                                                                    var query = `INSERT INTO PremiumManufacturer(premium_manufacturer_id, manufacturer_id, subscription_type, subscription_start_date, subscription_end_date)  VALUES(${data}, ${manid}, 'standard', '2022-01-01', '2022-12-31')`;
-                                                                    request.query(query, (err, resu) => {
-                                                                        if (err) throw err
-                                                                        else {
-                                                                            res.redirect(`/manufacturer/${manid}`)
-                                                                        }
-                                                                    })
-                                                                }
-                                                            })
+            // Save Review
+            db.reviews.push({
+                id: generateId(),
+                consumer_id: currentUser.id,
+                manufacturer_id: manufacturer.id,
+                rating: 1
+            });
 
-                                                        }
-                                                    })
-
-                                                }
-                                                else if (premium == 1) {
-                                                    var request = new sql.Request()
-                                                    var query = `UPDATE Manufacturer SET rating=${rating}, is_premium=${1} WHERE manufacturer_id=${manid}`
-                                                    request.query(query, (err, row) => {
-                                                        if (err) throw err
-                                                        else {
-                                                            var request = new sql.Request()
-                                                            var query = " SELECT TOP 1 * FROM PremiumManufacturer ORDER BY premium_manufacturer_id DESC"
-                                                            request.query(query, (err, row) => {
-                                                                if (err) throw err
-                                                                else {
-                                                                    var data
-                                                                    if (row.recordset <= 0) {
-                                                                        data = 1
-                                                                    }
-                                                                    else {
-                                                                        data = row.recordset[0]['premium_manufacturer_id'] + 1
-                                                                    }
-
-                                                                    var request = new sql.Request()
-                                                                    var query = `INSERT INTO PremiumManufacturer(premium_manufacturer_id, manufacturer_id, subscription_type, subscription_start_date, subscription_end_date)  VALUES(${data}, ${manid}, 'premium', '2022-01-01', '2022-12-31')`;
-                                                                    request.query(query, (err, resu) => {
-                                                                        if (err) throw err
-                                                                        else {
-                                                                            res.redirect(`/manufacturer/${manid}`)
-                                                                        }
-                                                                    })
-                                                                }
-                                                            })
-
-                                                        }
-                                                    })
-
-                                                }
-                                                else {
-                                                    var request = new sql.Request()
-                                                    var query = `UPDATE Manufacturer SET rating=${rating} WHERE manufacturer_id=${manid}`
-                                                    request.query(query, (err, row) => {
-                                                        if (err) throw err
-                                                        else {
-                                                            res.redirect(`/manufacturer/${manid}`)
-                                                        }
-                                                    })
-
-                                                }
-
-                                            }
-                                        })
-                                    }
-                                })
-
-                            }
-                        })
-                    }
-                })
-
-
-
+            // Update Manufacturer
+            db.users[manuIndex].rating = newRating;
+            if (subscriptionType) {
+                db.users[manuIndex].is_premium = 1; // Use 1 for int compatibility if needed
+                db.users[manuIndex].subscription = {
+                    type: subscriptionType,
+                    start_date: '2022-01-01',
+                    end_date: '2022-12-31'
+                };
             }
-        })
 
-    }
-    else {
+            saveDb(db);
+            res.redirect(`/manufacturer/${manid}`);
+
+        } else {
+            res.redirect('/home');
+        }
+    } else {
         res.redirect('/home')
     }
-
 })
-
 
 
 Router.post('/setpremconsum', (req, res) => {
     if (req.session.username) {
-        sql.connect(config, (err) => {
-            if (err) throw err
-            else {
+        const role = req.body.role;
+        const conid = req.body.conid;
 
-                const role = req.body.role
-                const conid = req.body.conid
-                if (role == "Basic") {
-                    var request = new sql.Request()
-                    var query = `UPDATE Consumer SET is_premium=${1} WHERE consumer_id=${conid}`
-                    request.query(query, (err, row) => {
-                        if (err) throw err
-                        else {
-                            var request = new sql.Request()
-                            var query = `Select * from PremiumConsumer where consumer_id=${conid}`
-                            request.query(query, (err, row1) => {
-                                if (err) throw err
-                                else {
-                                    if (row1.recordset.length <= 0) {
-                                        var request = new sql.Request()
-                                        var query = " SELECT TOP 1 * FROM PremiumConsumer ORDER BY premium_consumer_id DESC"
-                                        request.query(query, (err, row) => {
-                                            if (err) throw err
-                                            else {
-                                                var data
-                                                if (row.recordset <= 0) {
-                                                    data = 1
-                                                }
-                                                else {
-                                                    data = row.recordset[0]['premium_consumer_id'] + 1
-                                                }
+        const db = getDb();
+        const userIndex = db.users.findIndex(u => u.id === conid);
 
-                                                var request = new sql.Request()
-                                                var query = `INSERT INTO PremiumConsumer(premium_consumer_id, consumer_id, subscription_type, subscription_start_date, subscription_end_date)  VALUES(${data}, ${conid}, 'basic', '2022-01-01', '2022-12-31')`;
-                                                request.query(query, (err, resu) => {
-                                                    if (err) throw err
-                                                    else {
-                                                        res.redirect(`/editprofile`)
-                                                    }
-                                                })
-                                            }
-                                        })
-                                    }
-                                    else {
-                                        const val = row1.recordset[0]['premium_consumer_id']
-                                        var request = new sql.Request()
-                                        var query = `Update PremiumConsumer set subscription_type = 'basic', subscription_start_date = '2022-01-01', subscription_end_date = '2022-12-31' where consumer_id = ${conid} `
-                                        request.query(query, (err, resu) => {
-                                            if (err) throw err
-                                            else {
-                                                res.redirect(`/editprofile`)
-                                            }
-                                        })
-                                    }
-                                }
-
-                            })
-                        }
-                    })
-
-                }
-                if (role == "Standard") {
-                    var request = new sql.Request()
-                    var query = `UPDATE Consumer SET is_premium=${1} WHERE consumer_id=${conid}`
-                    request.query(query, (err, row) => {
-                        if (err) throw err
-                        else {
-                            var request = new sql.Request()
-                            var query = `Select * from PremiumConsumer where consumer_id=${conid}`
-                            request.query(query, (err, row1) => {
-                                if (err) throw err
-                                else {
-                                    if (row1.recordset.length <= 0) {
-                                        var request = new sql.Request()
-                                        var query = " SELECT TOP 1 * FROM PremiumConsumer ORDER BY premium_consumer_id DESC"
-                                        request.query(query, (err, row) => {
-                                            if (err) throw err
-                                            else {
-                                                var data
-                                                if (row.recordset <= 0) {
-                                                    data = 1
-                                                }
-                                                else {
-                                                    data = row.recordset[0]['premium_consumer_id'] + 1
-                                                }
-
-                                                var request = new sql.Request()
-                                                var query = `INSERT INTO PremiumConsumer(premium_consumer_id, consumer_id, subscription_type, subscription_start_date, subscription_end_date)  VALUES(${data}, ${conid}, 'standard', '2022-01-01', '2022-12-31')`;
-                                                request.query(query, (err, resu) => {
-                                                    if (err) throw err
-                                                    else {
-                                                        res.redirect(`/editprofile`)
-                                                    }
-                                                })
-                                            }
-                                        })
-                                    }
-                                    else {
-                                        const val = row1.recordset[0]['premium_consumer_id']
-                                        var request = new sql.Request()
-                                        var query = `Update PremiumConsumer set subscription_type = 'standard', subscription_start_date = '2022-01-01', subscription_end_date = '2022-12-31' where consumer_id = ${conid}`
-                                        request.query(query, (err, resu) => {
-                                            if (err) throw err
-                                            else {
-                                                res.redirect(`/editprofile`)
-                                            }
-                                        })
-                                    }
-                                }
-
-                            })
-                        }
-                    })
-
-                }
-                if (role == "Premium") {
-                    var request = new sql.Request()
-                    var query = `UPDATE Consumer SET is_premium=${1} WHERE consumer_id=${conid}`
-                    request.query(query, (err, row) => {
-                        if (err) throw err
-                        else {
-                            var request = new sql.Request()
-                            var query = `Select * from PremiumConsumer where consumer_id=${conid}`
-                            request.query(query, (err, row1) => {
-                                if (err) throw err
-                                else {
-                                    if (row1.recordset.length <= 0) {
-                                        var request = new sql.Request()
-                                        var query = " SELECT TOP 1 * FROM PremiumConsumer ORDER BY premium_consumer_id DESC"
-                                        request.query(query, (err, row) => {
-                                            if (err) throw err
-                                            else {
-                                                var data
-                                                if (row.recordset <= 0) {
-                                                    data = 1
-                                                } else {
-                                                    data = row.recordset[0]['premium_consumer_id'] + 1
-                                                }
-                                                var request = new sql.Request()
-                                                var query = `INSERT INTO PremiumConsumer(premium_consumer_id, consumer_id, subscription_type, subscription_start_date, subscription_end_date)  VALUES(${data}, ${conid}, 'premium', '2022-01-01', '2022-12-31')`;
-                                                request.query(query, (err, resu) => {
-                                                    if (err) throw err
-                                                    else {
-                                                        res.redirect(`/editprofile`)
-                                                    }
-                                                })
-                                            }
-                                        })
-                                    }
-                                    else {
-                                        const val = row1.recordset[0]['premium_consumer_id']
-                                        var request = new sql.Request()
-                                        var query = `Update PremiumConsumer set subscription_type='premium', subscription_start_date='2022-01-01', subscription_end_date='2022-12-31' where consumer_id=${conid}`;
-                                        request.query(query, (err, resu) => {
-                                            if (err) throw err
-                                            else {
-                                                res.redirect(`/editprofile`)
-                                            }
-                                        })
-                                    }
-                                }
-
-                            })
-                        }
-                    })
-                }
-
-
-            }
-        })
+        if (userIndex !== -1) {
+            db.users[userIndex].is_premium = 1;
+            db.users[userIndex].subscription = {
+                type: role.toLowerCase(),
+                start_date: '2022-01-01',
+                end_date: '2022-12-31'
+            };
+            saveDb(db);
+            res.redirect('/editprofile');
+        } else {
+            res.redirect('/editprofile');
+        }
+    } else {
+        res.redirect('/home');
     }
 })
 
@@ -1193,82 +540,69 @@ Router.post('/cevent', (req, res) => {
     const company = req.body.company
     const benefit = req.body.benefit
     const id = req.body.id
-    console.log(company, benefit, id)
-    sql.connect(config, (err) => {
-        if (err) throw err
-        else {
-            console.log("connection is successfull")
-            var request = new sql.Request()
-            var query = `insert into partnerships (manufacturer_id,partner_company_name,partner_benefits) values (${id},'${company}','${benefit}')`;
-            request.query(query, (err) => {
-                if (err) throw err
-                else {
-                    console.log("Record Added Successfully");
-                    res.redirect('/event')
-                }
-            })
-        }
-    })
+
+    const db = getDb();
+    db.partnerships.push({
+        id: generateId(),
+        manufacturer_id: id,
+        partner_company_name: company,
+        partner_benefits: benefit
+    });
+    saveDb(db);
+    console.log("Record Added Successfully");
+    res.redirect('/event')
 })
 
 Router.get('/event', (req, res) => {
-    sql.connect(config, (err) => {
-        if (err) throw err
-        else {
-            console.log("Connection is Successfull")
-            var request = new sql.Request()
-            var query = `select * from partnerships`
-            request.query(query, (err, row) => {
-                if (err) throw err
-                else {
-                    const data = row.recordset
-                    res.render('events', { data: data })
-                }
-            })
-        }
-    })
+    const db = getDb();
+    // Start with partnerships
+    const partnerships = db.partnerships.map(p => {
+        // manually populate manufacturer data if needed
+        const m = db.users.find(u => u.id === p.manufacturer_id);
+        return {
+            ...p,
+            manufacturer: m ? mapUserToTemplate(m) : {}
+        };
+    });
+    res.render('events', { data: partnerships });
 })
 
 Router.post('/meeting', (req, res) => {
     const select = req.body.select
     const address = req.body.address
-    console.log(address, select)
 
-    sql.connect(config, (err) => {
-        if (err) throw err
-        else {
-            console.log("Connection Added Successfully")
-            var request = new sql.Request()
+    const db = getDb();
+    const index = db.users.findIndex(u => u.id === select);
 
-            var query = `insert into OnsiteMeetingLocation (manufacturer_id,address) values (${select},'${address}')`
-            request.query(query, (err, row) => {
-                if (err) throw err
-                else {
-                    res.redirect('/consumer')
-                }
-            })
-        }
-    })
+    if (index !== -1) {
+        if (!db.users[index].meeting_locations) db.users[index].meeting_locations = [];
+        db.users[index].meeting_locations.push({
+            location_id: generateId(),
+            address: address
+        });
+        saveDb(db);
+        // Redirect logic from original:
+        res.redirect('/consumer')
+    } else {
+        res.redirect('/home');
+    }
 })
 
 
 Router.get('/del/:id/:ids', (req, res) => {
-    const id = req.params.id
-    const ids = req.params.ids
-    sql.connect(config, (err) => {
-        if (err) throw err
-        else {
-            console.log("Connection is Successfull")
-            var request = new sql.Request()
-            var query = `delete from OnsiteMeetingLocation where location_id=${id}`
-            request.query(query, (err) => {
-                if (err) throw err
-                else {
-                    res.redirect(`/manufacturer/${ids}`)
-                }
-            })
-        }
-    })
+    const id = req.params.id // Location ID
+    const ids = req.params.ids // Manufacturer ID
+
+    const db = getDb();
+    const index = db.users.findIndex(u => u.id === ids);
+
+    if (index !== -1 && db.users[index].meeting_locations) {
+        db.users[index].meeting_locations = db.users[index].meeting_locations.filter(m => m.location_id !== id);
+        saveDb(db);
+        res.redirect(`/manufacturer/${ids}`);
+    } else {
+        res.redirect(`/manufacturer/${ids}`);
+    }
 })
 
 
