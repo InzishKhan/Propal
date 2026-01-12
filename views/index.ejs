@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
     rel="stylesheet">
 
-  <title>HOME</title>
+  <title>ProPal | B2B Marketplace</title>
 
   <!-- Bootstrap core CSS -->
   <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -20,6 +20,244 @@
   <link rel="stylesheet" href="assets/css/owl.css">
   <link rel="stylesheet" href="assets/css/animate.css">
   <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css" />
+
+  <style>
+    :root {
+      --primary-color: #6a53da;
+      --secondary-color: #f3f2ff;
+      --accent-color: #fe6060;
+      --dark-text: #1a1a1a;
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --glass-border: rgba(106, 83, 218, 0.2);
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      overflow-x: hidden;
+      color: var(--dark-text);
+      background-color: #f4f6f9;
+    }
+
+    /* --- IMPROVED HEADER --- */
+    .header-area {
+      background-color: #ffffff !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0;
+      right: 0;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08) !important;
+      height: 90px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .header-area .container {
+      max-width: 100%;
+      padding: 0 50px;
+    }
+
+    .header-area .main-nav {
+      background: transparent;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    /* Logo Styling */
+    .header-area .main-nav .logo {
+      line-height: normal;
+      margin: 0;
+      float: none;
+      /* Reset float */
+      display: flex;
+      align-items: center;
+    }
+
+    .header-area .main-nav .logo h1 {
+      font-size: 28px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      color: var(--primary-color) !important;
+      margin: 0;
+    }
+
+    /* Navigation Menu Styling */
+    .header-area .main-nav .nav {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin: 0;
+      float: none;
+      /* Reset float */
+      height: auto;
+    }
+
+    .header-area .main-nav .nav li {
+      margin-left: 30px;
+      display: inline-block;
+    }
+
+    .header-area .main-nav .nav li a {
+      display: block;
+      padding: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: #444 !important;
+      text-transform: capitalize;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      background: transparent !important;
+      /* Remove background on links */
+      height: auto;
+      line-height: normal;
+    }
+
+    .header-area .main-nav .nav li a:hover,
+    .header-area .main-nav .nav li a.active {
+      color: var(--primary-color) !important;
+    }
+
+    /* Button Styling in Nav */
+    .nav-btn {
+      background-color: var(--primary-color) !important;
+      color: #fff !important;
+      padding: 10px 25px !important;
+      border-radius: 50px !important;
+      font-weight: 600 !important;
+      box-shadow: 0 4px 10px rgba(106, 83, 218, 0.3);
+      transition: transform 0.2s;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(106, 83, 218, 0.4);
+      color: #fff !important;
+    }
+
+    /* --- REVAMPED BANNER --- */
+    .main-banner {
+      /* Professional Warehouse/Logistics Background */
+      background-image: linear-gradient(rgba(43, 29, 110, 0.85), rgba(43, 29, 110, 0.7)), url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      padding: 200px 0 150px 0 !important;
+      margin-top: 0 !important;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Fix for Owl Carousel hidden content */
+    .owl-banner .item {
+      margin-left: 0 !important;
+      padding: 0 !important;
+    }
+
+    /* REMOVE CLASHING 3D ILLUSTRATIONS */
+    .main-banner .item-1,
+    .main-banner .item-2,
+    .main-banner .item-3 {
+      background-image: none !important;
+      background: transparent !important;
+    }
+
+    /* Center the info card */
+    .header-text {
+      margin: 0 auto;
+      background-color: #ffffff !important;
+      padding: 60px !important;
+      border-radius: 25px !important;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3) !important;
+      max-width: 800px !important;
+      border: none !important;
+      border-top: 8px solid var(--primary-color) !important;
+      position: relative;
+      z-index: 10;
+      text-align: center !important;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header-text span.category {
+      font-size: 13px !important;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: inline-block;
+      margin-bottom: 20px !important;
+    }
+
+    .header-text h2 {
+      font-size: 48px !important;
+      font-weight: 800 !important;
+      color: #222 !important;
+      line-height: 1.2 !important;
+      margin-bottom: 30px !important;
+    }
+
+    .header-text h2 em {
+      color: var(--primary-color) !important;
+      font-style: normal;
+    }
+
+    .main-button a {
+      background-color: var(--primary-color) !important;
+      color: #ffffff !important;
+      padding: 0 40px !important;
+      /* Horizontal padding only */
+      height: 55px !important;
+      /* Fixed height for consistency */
+      font-size: 16px !important;
+      font-weight: 700 !important;
+      border-radius: 50px !important;
+      transition: all 0.3s ease;
+      display: inline-flex !important;
+      /* Use flexbox for perfect centering */
+      align-items: center !important;
+      justify-content: center !important;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      line-height: 1 !important;
+    }
+
+    .main-button a:hover {
+      background-color: #553eb5 !important;
+      transform: translateY(-2px);
+    }
+
+    .badge-welcome {
+      display: inline-block;
+      background: #f4f6f9 !important;
+      color: #333 !important;
+      padding: 12px 24px !important;
+      border-radius: 8px !important;
+      margin-top: 20px !important;
+      font-weight: 600 !important;
+      font-size: 16px !important;
+      border: 1px solid #e0e0e0;
+    }
+
+    .badge-welcome strong {
+      color: var(--primary-color) !important;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 992px) {
+      .header-area .main-nav .nav {
+        display: none;
+      }
+
+      /* Mobile menu handling would need JS trigger, keeping simple for now */
+      .header-text h2 {
+        font-size: 36px !important;
+      }
+    }
+  </style>
   <!--
 
 TemplateMo 586 Scholar
@@ -45,7 +283,7 @@ https://templatemo.com/tm-586-scholar
   <!-- ***** Preloader End ***** -->
 
   <!-- ***** Header Area Start ***** -->
-  <header class="header-area header-sticky">
+  <header class="header-area">
     <div class="container">
       <div class="row">
         <div class="col-12">
@@ -59,26 +297,26 @@ https://templatemo.com/tm-586-scholar
             <!-- ***** Serach Start ***** -->
             <!-- ***** Menu Start ***** -->
             <ul class="nav">
-              <li class="scroll-to-section"><a href="/home" class="active">Home</a></li>
-              <li class="scroll-to-section"><a href="/explore">Manufactures</a></li>
-              <li class="scroll-to-section"><a href="/event">Events</a></li>
-              <li class="scroll-to-section"><a href="/about">About</a></li>
-              <li class="scroll-to-section"><a href="/contact">contact us</a></li>
+              <li><a href="/home" class="active">Home</a></li>
+              <li><a href="/explore">Manufacturers</a></li>
+              <li><a href="/event">Events</a></li>
+              <li><a href="/about">About</a></li>
+              <li><a href="/contact">Contact</a></li>
 
               <%if(check==0){%>
-                <li class="scroll-to-section"><a href="/signup">Register Now!</a></li>
-                <li class="scroll-to-section"><a href="/login">Welcome Back!</a></li>
+                <li><a href="/signup">Join</a></li>
+                <li><a href="/login" class="nav-btn">Login</a></li>
                 <%}%>
 
                   <% if(check==1){%>
-                    <li class="scroll-to-section"><a href="/consumer">Profile (<%= username %>)</a></li>
-                    <li class="scroll-to-section"><a href="/logout">logout</a></li>
+                    <li><a href="/consumer" style="color: var(--primary-color) !important;">Dashboard</a></li>
+                    <li><a href="/logout" class="nav-btn">Logout</a></li>
                     <%}%>
+
                       <% if(check==2){%>
-                        <li class="scroll-to-section"><a href="/manufuacturerp">Profile (<%= username %>)</a></li>
-                        <li class="scroll-to-section"><a href="/logout">logout</a></li>
+                        <li><a href="/manufuacturerp" style="color: var(--primary-color) !important;">Dashboard</a></li>
+                        <li><a href="/logout" class="nav-btn">Logout</a></li>
                         <%}%>
-                          <li class="scroll-to-section"><a id="dark">Mode</a></li>
             </ul>
             <a class='menu-trigger'>
               <span>Menu</span>
@@ -98,42 +336,40 @@ https://templatemo.com/tm-586-scholar
           <div class="owl-carousel owl-banner">
             <div class="item item-1">
               <div class="header-text">
-                <span class="category">
-                  <% if (displayName) { %>
-                    Welcome Back, <%= displayName %>!
-                      <% } %>
-                </span>
-                <h2 style="color: #7a6ad8;">Get raw, Get real, Get bulk</h2>
+                <span class="category">verified network</span>
+                <h2>Get raw, <em>Get real,</em> Get bulk</h2>
                 <div class="buttons">
-                  <% if (!displayName) { %>
-                    <a href="/signup" class="btn btn-primary">Join Now</a>
-                    <% } %>
+                  <div class="main-button">
+                    <% if (displayName) { %>
+                      <div class="badge-welcome">Welcome back, <strong>
+                          <%= displayName %>
+                        </strong></div>
+                      <% } else { %>
+                        <a href="/signup">Join Our Network</a>
+                        <% } %>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="item item-2">
               <div class="header-text">
-                <span class="category">
-                  <% if (displayName) { %>
-                    Logged in as: <%= displayName %>
-                      <% } %>
-                </span>
-                <h2 style="color: #7a6ad8;">Get raw, Get real, Get bulk</h2>
+                <span class="category">Global Sourcing</span>
+                <h2>Find the <em>Best Materials</em> Worldwide</h2>
                 <div class="buttons">
-
+                  <div class="main-button">
+                    <a href="/explore">Explore Manufacturers</a>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="item item-3">
               <div class="header-text">
-                <span class="category">
-                  <% if (displayName) { %>
-                    B2B Marketplace - <%= displayName %>
-                      <% } %>
-                </span>
-                <h2 style="color: #7a6ad8;">Get raw, Get real, Get bulk</h2>
+                <span class="category">Verified Partners</span>
+                <h2>Build <em>Stronger</em> Business Ties</h2>
                 <div class="buttons">
-
+                  <div class="main-button">
+                    <a href="/event">Upcoming Events</a>
+                  </div>
                 </div>
               </div>
             </div>
