@@ -1,46 +1,28 @@
-const express = require('express')
-const app = express()
-const path = require('path')
-const Router = express.Router()
-const fs = require('fs');
-const bodyparser = require('body-parser')
-const session = require('express-session')
-const multer = require('multer')
+const express = require('express');
+const app = express();
+const path = require('path');
+const Router = express.Router();
+const multer = require('multer');
+const session = require('express-session');
+require('dotenv').config();
+const { PrismaClient } = require('@prisma/client');
 
-// File-based Database
-const DB_FILE = './database.json';
+const prisma = new PrismaClient();
 
-// Initialize DB file if it doesn't exist
-if (!fs.existsSync(DB_FILE)) {
-    const initialData = {
-        users: [],
-        reviews: [],
-        partnerships: [],
-        support: []
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2));
-}
-
-// Helper to read/write DB
-const getDb = () => JSON.parse(fs.readFileSync(DB_FILE));
-const saveDb = (data) => fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-
-// Helper to generate IDs
-const generateId = () => Math.random().toString(36).substr(2, 9);
-
+// --- Configuration ---
 
 // File Upload
-var storage = multer.diskStorage({
+const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './views/uploads')
+        cb(null, './views/uploads');
     },
     filename: function (req, file, cb) {
-        cb(null, file.originalname)
+        cb(null, file.originalname);
     }
-})
-var upload = multer({ storage: storage })
+});
+const upload = multer({ storage: storage });
 
-// Session
+// Session setup
 const oneDay = 1000 * 60 * 60 * 24;
 app.use(session({
     secret: "itsasecret",
@@ -49,339 +31,323 @@ app.use(session({
     resave: false
 }));
 
-
-app.set('view engine', 'ejs')
+// View Engine & Middleware
+app.set('view engine', 'ejs');
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'views')))
+app.use(express.static(path.join(__dirname, 'views')));
 
 
-// Helper to map User object for templates
-// Templates expect: manufacturer_id (for M), consumer_id (for C), company_name, etc.
+// --- Helper Functions ---
+
 const mapUserToTemplate = (user) => {
     if (!user) return null;
-    let u = { ...user };
-    u.user_id = u.id;
-    u.manufacturer_id = u.id;
-    u.consumer_id = u.id;
-    // Ensure all fields expected by template exist, even if null
-    return u;
+    return {
+        ...user,
+        user_id: user.id,
+        manufacturer_id: user.id,
+        consumer_id: user.id,
+        company_name: user.companyName,
+        contact_name: user.contactName,
+        contact_email: user.contactEmail,
+        contact_phone: user.contactPhone,
+        website_url: user.websiteUrl,
+        raw_materials: user.rawMaterials,
+        is_premium: user.isPremium ? 1 : 0,
+        subscription_type: user.subscriptionType
+    };
 };
 
-Router.get('/', (req, res) => {
-    const db = getDb();
-    // Top 5 manufacturers by rating
-    const manufacturers = db.users
-        .filter(u => u.role === 'M' && u.rating > 1)
-        .sort((a, b) => b.rating - a.rating)
-        .slice(0, 5);
 
-    const datas = manufacturers.map(mapUserToTemplate);
+// --- Routes ---
 
-    if (req.session.username && req.session.role == 'C') {
-        res.render('index', { data: datas, check: 1, username: req.session.username })
+// Home Page
+Router.get(['/', '/home'], async (req, res) => {
+    try {
+        const manufacturers = await prisma.user.findMany({
+            where: {
+                role: 'M',
+                rating: { gt: 1 }
+            },
+            orderBy: { rating: 'desc' },
+            take: 5
+        });
+
+        const datas = manufacturers.map(mapUserToTemplate);
+        let check = 0;
+        let displayName = null;
+
+        if (req.session.username) {
+            check = req.session.role === 'C' ? 1 : (req.session.role === 'M' ? 2 : 0);
+            const user = await prisma.user.findUnique({
+                where: { username: req.session.username }
+            });
+            if (user) {
+                displayName = user.companyName || user.contactName || user.username;
+            }
+        }
+
+        res.render('index', {
+            data: datas,
+            check: check,
+            username: req.session.username || null,
+            displayName: displayName
+        });
+    } catch (err) {
+        console.error(err);
+        res.render('index', { data: [], check: 0, username: null, displayName: null });
     }
-    else if (req.session.username && req.session.role == 'M') {
-        res.render('index', { data: datas, check: 2, username: req.session.username })
+});
+
+// Static Pages
+Router.get('/about', (req, res) => res.render('about'));
+Router.get('/contact', (req, res) => res.render('contact'));
+
+Router.post('/contact', async (req, res) => {
+    try {
+        await prisma.support.create({
+            data: {
+                email: req.body.email,
+                description: req.body.message
+            }
+        });
+        res.render('contact');
+    } catch (err) {
+        console.error(err);
+        res.render('contact');
     }
-    else {
-        res.render('index', { data: datas, check: 0, username: null })
-    }
-})
+});
 
-
-Router.get('/home', (req, res) => {
-    const db = getDb();
-    const manufacturers = db.users
-        .filter(u => u.role === 'M' && u.rating > 1)
-        .sort((a, b) => b.rating - a.rating)
-        .slice(0, 5);
-    const datas = manufacturers.map(mapUserToTemplate);
-
-    if (req.session.username && req.session.role == 'C') {
-        res.render('index', { data: datas, check: 1, username: req.session.username })
-    }
-    else if (req.session.username && req.session.role == 'M') {
-        res.render('index', { data: datas, check: 2, username: req.session.username })
-    }
-    else {
-        res.render('index', { data: datas, check: 0, username: null })
-    }
-})
-
-Router.get('/about', (req, res) => {
-    res.render('about')
-})
-
-Router.get('/contact', (req, res) => {
-    res.render('contact')
-})
-
-Router.post('/contact', (req, res) => {
-    const email = req.body.email
-    const message = req.body.message
-
-    const db = getDb();
-    db.support.push({
-        id: generateId(),
-        email,
-        description: message,
-        createdAt: new Date()
-    });
-    saveDb(db);
-
-    console.log("Record Added Successfully");
-    res.render('contact');
-})
-
+// Authentication
 Router.get('/login', (req, res) => {
-    if (req.session.username) {
-        res.redirect('/home')
-    }
-    else {
-        res.render('login')
-    }
-})
+    if (req.session.username) return res.redirect('/home');
+    res.render('login');
+});
 
-
-Router.post('/login', (req, res) => {
-    const username = req.body.username
-    const password = req.body.password
-
-    const db = getDb();
-    const user = db.users.find(u => u.username === username && u.password === password);
-
-    if (user) {
-        req.session.username = username
-        req.session.role = user.role
-        req.session.userId = user.id;
-
-        console.log("Logged in:", req.session)
-        if (user.role == 'C') {
-            res.redirect('/consumer')
-        }
-        else if (user.role == 'M') {
-            res.redirect('/manufuacturerp')
-        } else {
-            res.redirect('/home');
-        }
-    }
-    else {
-        console.log("No Record Found")
-        res.redirect('/login')
-    }
-})
-
-
-Router.get('/editprofile', (req, res) => {
-    if (req.session.username) {
-        const db = getDb();
-        const user = db.users.find(u => u.username === req.session.username);
+Router.post('/login', async (req, res) => {
+    try {
+        const user = await prisma.user.findFirst({
+            where: {
+                username: req.body.username,
+                password: req.body.password
+            }
+        });
 
         if (user) {
-            const data = mapUserToTemplate(user);
-            res.render('EditProfile', { data: data });
+            req.session.username = user.username;
+            req.session.role = user.role;
+            req.session.userId = user.id;
+
+            if (user.role === 'C') return res.redirect('/consumer');
+            if (user.role === 'M') return res.redirect('/manufuacturerp');
+            return res.redirect('/home');
         } else {
-            console.log("No Record Found")
-            res.redirect('/home');
+            res.redirect('/login');
         }
-    } else {
-        res.redirect('/home')
+    } catch (err) {
+        console.error(err);
+        res.redirect('/login');
     }
-})
-
-Router.post('/update', upload.single('Picture'), (req, res) => {
-    if (!req.session.username) return res.redirect('/login');
-
-    const db = getDb();
-    const userIndex = db.users.findIndex(u => u.username === req.session.username);
-
-    if (userIndex !== -1) {
-        db.users[userIndex].website_url = req.body.website;
-        db.users[userIndex].contact_email = req.body.email;
-        db.users[userIndex].company_name = req.body.companyname;
-        db.users[userIndex].contact_name = req.body.contactname;
-        db.users[userIndex].address = req.body.Address;
-        db.users[userIndex].contact_phone = req.body.phone;
-
-        if (req.file) {
-            db.users[userIndex].image = req.file.originalname
-        }
-        saveDb(db);
-        console.log("values updated");
-        res.redirect('/editprofile');
-    } else {
-        res.redirect('/editprofile');
-    }
-})
-
+});
 
 Router.get('/logout', (req, res) => {
-    if (req.session.username) {
-        req.session.destroy();
-        res.redirect('/home')
-    }
-    else {
-        res.redirect('/editprofile')
-    }
-})
-
+    req.session.destroy();
+    res.redirect('/home');
+});
 
 Router.get('/signup', (req, res) => {
-    if (req.session.username) {
-        res.redirect('/home')
-    }
-    else {
-        res.render('signup')
-    }
-})
+    if (req.session.username) return res.redirect('/home');
+    res.render('signup');
+});
 
-// basic signup (Admin/Generic)
-Router.post('/signup', (req, res) => {
-    const username = req.body.username
-    const email = req.body.email
-    const password = req.body.password
+// Generic Signup
+Router.post('/signup', async (req, res) => {
+    try {
+        const exists = await prisma.user.findUnique({
+            where: { username: req.body.username }
+        });
 
-    const db = getDb();
-    const exists = db.users.find(u => u.username === username);
+        if (exists) return res.redirect('/login');
 
-    if (exists) {
-        console.log("value already exists");
-        res.redirect('/login');
-    } else {
-        const newUser = {
-            id: generateId(),
-            username,
-            email,
-            password,
-            role: 'A',
-            rating: 0,
-            is_premium: false,
-            meeting_locations: []
-        };
-        db.users.push(newUser);
-        saveDb(db);
-        console.log("record added successfully");
+        await prisma.user.create({
+            data: {
+                username: req.body.username,
+                email: req.body.email,
+                password: req.body.password,
+                role: 'A'
+            }
+        });
+        res.redirect('/signup');
+    } catch (err) {
+        console.error(err);
         res.redirect('/signup');
     }
-})
+});
 
-Router.post('/signupcon', upload.single('Picture'), (req, res) => {
-    const username = req.body.username
-    const email = req.body.email
-    const password = req.body.password
+// Consumer Signup
+Router.post('/signupcon', upload.single('Picture'), async (req, res) => {
+    try {
+        const exists = await prisma.user.findUnique({
+            where: { username: req.body.username }
+        });
 
-    // Check dupe
-    const db = getDb();
-    if (db.users.find(u => u.username === username)) {
-        return res.redirect('/login');
+        if (exists) return res.redirect('/login');
+
+        await prisma.user.create({
+            data: {
+                username: req.body.username,
+                email: req.body.email,
+                password: req.body.password,
+                role: 'C',
+                contactName: req.body.contactname,
+                contactEmail: req.body.contactemail,
+                companyName: req.body.companyname,
+                websiteUrl: req.body.website,
+                address: req.body.Address,
+                contactPhone: req.body.contactphone,
+                image: req.file ? req.file.originalname : null
+            }
+        });
+        res.redirect('/signup');
+    } catch (err) {
+        console.error(err);
+        res.redirect('/signup');
     }
+});
 
-    const newUser = {
-        id: generateId(),
-        username,
-        email,
-        password,
-        role: 'C',
-        contact_name: req.body.contactname,
-        contact_email: req.body.contactemail,
-        company_name: req.body.companyname,
-        website_url: req.body.website,
-        address: req.body.Address,
-        contact_phone: req.body.contactphone,
-        image: req.file ? req.file.originalname : null,
-        rating: 0,
-        is_premium: false,
-        meeting_locations: []
-    };
+// Manufacturer Signup
+Router.post('/signupman', upload.single('Picture'), async (req, res) => {
+    try {
+        const exists = await prisma.user.findUnique({
+            where: { username: req.body.username }
+        });
 
-    db.users.push(newUser);
-    saveDb(db);
-    console.log("record added successfully");
-    res.redirect('/signup');
-})
+        if (exists) return res.redirect('/login');
 
-Router.post('/signupman', upload.single('Picture'), (req, res) => {
-    const username = req.body.username
-    const email = req.body.email
-    const password = req.body.password
-
-    const db = getDb();
-    if (db.users.find(u => u.username === username)) {
-        return res.redirect('/login');
+        await prisma.user.create({
+            data: {
+                username: req.body.username,
+                email: req.body.email,
+                password: req.body.password,
+                role: 'M',
+                contactName: req.body.contactname,
+                contactEmail: req.body.contactemail,
+                companyName: req.body.companyname,
+                websiteUrl: req.body.website,
+                address: req.body.Address,
+                contactPhone: req.body.contactphone,
+                rawMaterials: req.body.material,
+                image: req.file ? req.file.originalname : null
+            }
+        });
+        res.redirect('/signup');
+    } catch (err) {
+        console.error(err);
+        res.redirect('/signup');
     }
+});
 
-    const newUser = {
-        id: generateId(),
-        username,
-        email,
-        password,
-        role: 'M',
-        contact_name: req.body.contactname,
-        contact_email: req.body.contactemail,
-        company_name: req.body.companyname,
-        website_url: req.body.website,
-        address: req.body.Address,
-        contact_phone: req.body.contactphone,
-        raw_materials: req.body.material,
-        image: req.file ? req.file.originalname : null,
-        rating: 0,
-        is_premium: false,
-        meeting_locations: []
-    };
 
-    db.users.push(newUser);
-    saveDb(db);
-    console.log("record added successfully");
-    res.redirect('/signup');
-})
+// Core Features
 
-Router.get('/explore', (req, res) => {
-    const db = getDb();
-    let manufacturers;
-
-    if (!req.session.username) {
-        manufacturers = db.users.filter(u => u.role === 'M');
-    } else {
-        const firstchar = req.session.username.charAt(0).toLowerCase();
-        manufacturers = db.users.filter(u => u.role === 'M' && u.company_name.toLowerCase().startsWith(firstchar));
-        // Fallback if none found? Original logic seemed specific. Let's return all if filter is too strict or just fix logic.
-        // Actually, let's just return all for now to be safe, filtering by first char of username is a weird requirement from original code.
-        // But let's stick to "All Managers" if logged in usually makes more sense for explore.
-        // Or if the original purpose was "Recommendations", then maybe.
-        // Let's just return ALL manufacturers for better UX.
-        manufacturers = db.users.filter(u => u.role === 'M');
+Router.get('/explore', async (req, res) => {
+    try {
+        const manufacturers = await prisma.user.findMany({
+            where: { role: 'M' }
+        });
+        const datas = manufacturers.map(mapUserToTemplate);
+        res.render('explore', { data: datas, val: 0 });
+    } catch (err) {
+        console.error(err);
+        res.render('explore', { data: [], val: 0 });
     }
-    const datas = manufacturers.map(mapUserToTemplate);
-    res.render('explore', { data: datas, val: 0 });
-})
+});
 
+Router.post('/searchexplore', async (req, res) => {
+    try {
+        const searchvalue = req.body.searchval.toLowerCase();
 
-Router.post('/searchexplore', (req, res) => {
-    const searchvalue = req.body.searchval.toLowerCase();
-    const db = getDb();
+        const manufacturers = await prisma.user.findMany({
+            where: {
+                role: 'M',
+                OR: [
+                    { companyName: { contains: searchvalue, mode: 'insensitive' } },
+                    { rawMaterials: { contains: searchvalue, mode: 'insensitive' } }
+                ]
+            }
+        });
 
-    const manufacturers = db.users.filter(u =>
-        u.role === 'M' &&
-        (u.company_name.toLowerCase().includes(searchvalue) || (u.raw_materials && u.raw_materials.toLowerCase().includes(searchvalue)))
-    );
-
-    const datas = manufacturers.map(mapUserToTemplate);
-
-    if (datas.length > 0) {
-        res.render('explore', { data: datas, val: 0 })
+        const datas = manufacturers.map(mapUserToTemplate);
+        res.render('explore', { data: datas, val: datas.length > 0 ? 0 : 1 });
+    } catch (err) {
+        console.error(err);
+        res.render('explore', { data: [], val: 1 });
     }
-    else {
-        res.render('explore', { data: datas, val: 1 })
+});
+
+
+// Profile Management
+
+Router.get('/editprofile', async (req, res) => {
+    if (!req.session.username) return res.redirect('/home');
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { username: req.session.username }
+        });
+
+        if (user) {
+            res.render('EditProfile', { data: mapUserToTemplate(user) });
+        } else {
+            res.redirect('/home');
+        }
+    } catch (err) {
+        console.error(err);
+        res.redirect('/home');
     }
-})
+});
+
+Router.post('/update', upload.single('Picture'), async (req, res) => {
+    if (!req.session.username) return res.redirect('/login');
+
+    try {
+        const updateData = {
+            websiteUrl: req.body.website,
+            contactEmail: req.body.email,
+            companyName: req.body.companyname,
+            contactName: req.body.contactname,
+            address: req.body.Address,
+            contactPhone: req.body.phone
+        };
+
+        if (req.file) updateData.image = req.file.originalname;
+
+        await prisma.user.update({
+            where: { username: req.session.username },
+            data: updateData
+        });
+
+        res.redirect('/editprofile');
+    } catch (err) {
+        console.error(err);
+        res.redirect('/editprofile');
+    }
+});
 
 
-Router.get('/consumer', (req, res) => {
-    if (req.session.username && req.session.role == 'C') {
-        const db = getDb();
-        const user = db.users.find(u => u.username === req.session.username);
-        const manufacturers = db.users.filter(u => u.role === 'M');
+// Consumer/Manufacturer Dashboards
+
+Router.get('/consumer', async (req, res) => {
+    if (!req.session.username || req.session.role !== 'C') return res.redirect('/home');
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { username: req.session.username }
+        });
+
+        const manufacturers = await prisma.user.findMany({
+            where: { role: 'M' }
+        });
 
         if (user) {
             res.render('ProfileCon1', {
@@ -391,19 +357,28 @@ Router.get('/consumer', (req, res) => {
         } else {
             res.redirect('/home');
         }
+    } catch (err) {
+        console.error(err);
+        res.redirect('/home');
     }
-    else {
-        res.redirect('/home')
-    }
-})
+});
 
-Router.get('/manufuacturerp', (req, res) => {
-    if (req.session.username && req.session.role == 'M') {
-        const db = getDb();
-        const user = db.users.find(u => u.username === req.session.username);
+Router.get('/manufuacturerp', async (req, res) => {
+    if (!req.session.username || req.session.role !== 'M') return res.redirect('/home');
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { username: req.session.username },
+            include: { meetingLocations: true }
+        });
 
         if (user) {
-            const meetings = user.meeting_locations || [];
+            const meetings = user.meetingLocations.map(m => ({
+                location_id: m.id,
+                address: m.address,
+                manufacturer_id: user.id
+            }));
+
             res.render('ProfileManu1', {
                 data: mapUserToTemplate(user),
                 check: 0,
@@ -414,35 +389,54 @@ Router.get('/manufuacturerp', (req, res) => {
         } else {
             res.redirect('/home');
         }
+    } catch (err) {
+        console.error(err);
+        res.redirect('/home');
     }
-    else {
-        res.redirect('/home')
-    }
-})
+});
 
+Router.get('/manufacturer/:id', async (req, res) => {
+    try {
+        const manufacturer = await prisma.user.findUnique({
+            where: { id: req.params.id },
+            include: { meetingLocations: true }
+        });
 
-Router.get('/manufacturer/:id', (req, res) => {
-    const id = req.params['id'];
-    const db = getDb();
+        const currentUser = req.session.username ? await prisma.user.findUnique({
+            where: { username: req.session.username }
+        }) : null;
 
-    const manufacturer = db.users.find(u => u.id === id);
-    const currentUser = req.session.username ? db.users.find(u => u.username === req.session.username) : null;
+        if (!manufacturer) return res.redirect('/explore');
 
-    if (!manufacturer) return res.redirect('/explore');
+        const manufData = mapUserToTemplate(manufacturer);
+        const meetings = manufacturer.meetingLocations.map(m => ({
+            location_id: m.id,
+            address: m.address,
+            manufacturer_id: manufacturer.id
+        }));
 
-    const meetings = manufacturer.meeting_locations || [];
-    const manufData = mapUserToTemplate(manufacturer);
+        // View own profile
+        if (currentUser && currentUser.id === manufacturer.id) {
+            return res.render('ProfileManu1', {
+                data: manufData,
+                check: 0,
+                review: 2,
+                premium: 0,
+                meet: meetings
+            });
+        }
 
-    if (currentUser && currentUser.id === id) {
-        res.render('ProfileManu1', { data: manufData, check: 0, review: 2, premium: 0, meet: meetings });
-    } else {
-        let reviewStats = { review: 1, premium: manufacturer.is_premium ? 1 : 0 };
+        // View as consumer/other
+        let reviewStats = { review: 1, premium: manufacturer.isPremium ? 1 : 0 };
 
         if (currentUser && currentUser.role !== 'M') {
-            const existingReview = db.reviews.find(r => r.consumer_id === currentUser.id && r.manufacturer_id === manufacturer.id);
-            if (existingReview) {
-                reviewStats.review = 0;
-            }
+            const hasReviewed = await prisma.review.findFirst({
+                where: {
+                    consumerId: currentUser.id,
+                    manufacturerId: manufacturer.id
+                }
+            });
+            if (hasReviewed) reviewStats.review = 0;
         } else {
             reviewStats.review = 2;
         }
@@ -454,159 +448,159 @@ Router.get('/manufacturer/:id', (req, res) => {
             premium: reviewStats.premium,
             meet: 0
         });
+    } catch (err) {
+        console.error(err);
+        res.redirect('/explore');
     }
-})
+});
 
-Router.post('/review', (req, res) => {
-    if (req.session.username && req.session.role != 'M' && req.session.role != 'A') {
-        const role = req.body.role
-        const value = (role == "Positive") ? 1 : 0;
-        const manid = req.body.manid
 
-        const db = getDb();
-        const currentUser = db.users.find(u => u.username === req.session.username);
-        const manuIndex = db.users.findIndex(u => u.id === manid);
+// Actions (Review, Meetings, Premium)
 
-        if (currentUser && manuIndex !== -1) {
-            const manufacturer = db.users[manuIndex];
+Router.post('/review', async (req, res) => {
+    if (!req.session.username || req.session.role === 'M' || req.session.role === 'A') {
+        return res.redirect('/home');
+    }
 
-            // Update Rating
-            let newRating = (manufacturer.rating || 0) + value;
+    const value = req.body.role === "Positive" ? 1 : 0;
+    const manid = req.body.manid;
 
-            // Determine Premium
-            let subscriptionType = null;
-            if (newRating >= 4) subscriptionType = 'premium';
-            else if (newRating >= 3) subscriptionType = 'standard';
-            else if (newRating == 2) subscriptionType = 'basic';
+    try {
+        const currentUser = await prisma.user.findUnique({
+            where: { username: req.session.username }
+        });
 
-            // Save Review
-            db.reviews.push({
-                id: generateId(),
-                consumer_id: currentUser.id,
-                manufacturer_id: manufacturer.id,
-                rating: 1
+        const manufacturer = await prisma.user.findUnique({
+            where: { id: manid }
+        });
+
+        if (currentUser && manufacturer) {
+            // Add Review
+            await prisma.review.create({
+                data: {
+                    consumerId: currentUser.id,
+                    manufacturerId: manufacturer.id,
+                    rating: 1
+                }
             });
 
-            // Update Manufacturer
-            db.users[manuIndex].rating = newRating;
-            if (subscriptionType) {
-                db.users[manuIndex].is_premium = 1; // Use 1 for int compatibility if needed
-                db.users[manuIndex].subscription = {
-                    type: subscriptionType,
-                    start_date: '2022-01-01',
-                    end_date: '2022-12-31'
-                };
+            // Update Rating
+            const newRating = manufacturer.rating + value;
+            const updateData = { rating: newRating };
+
+            // Premium Logic
+            if (newRating >= 4) {
+                updateData.isPremium = true;
+                updateData.subscriptionType = 'premium';
+            } else if (newRating >= 3) {
+                updateData.subscriptionType = 'standard';
+            } else if (newRating === 2) {
+                updateData.subscriptionType = 'basic';
             }
 
-            saveDb(db);
-            res.redirect(`/manufacturer/${manid}`);
+            await prisma.user.update({
+                where: { id: manid },
+                data: updateData
+            });
 
+            res.redirect(`/manufacturer/${manid}`);
         } else {
             res.redirect('/home');
         }
-    } else {
-        res.redirect('/home')
-    }
-})
-
-
-Router.post('/setpremconsum', (req, res) => {
-    if (req.session.username) {
-        const role = req.body.role;
-        const conid = req.body.conid;
-
-        const db = getDb();
-        const userIndex = db.users.findIndex(u => u.id === conid);
-
-        if (userIndex !== -1) {
-            db.users[userIndex].is_premium = 1;
-            db.users[userIndex].subscription = {
-                type: role.toLowerCase(),
-                start_date: '2022-01-01',
-                end_date: '2022-12-31'
-            };
-            saveDb(db);
-            res.redirect('/editprofile');
-        } else {
-            res.redirect('/editprofile');
-        }
-    } else {
+    } catch (err) {
+        console.error(err);
         res.redirect('/home');
     }
-})
+});
 
+Router.post('/setpremconsum', async (req, res) => {
+    if (!req.session.username) return res.redirect('/home');
 
-Router.post('/cevent', (req, res) => {
-    const company = req.body.company
-    const benefit = req.body.benefit
-    const id = req.body.id
-
-    const db = getDb();
-    db.partnerships.push({
-        id: generateId(),
-        manufacturer_id: id,
-        partner_company_name: company,
-        partner_benefits: benefit
-    });
-    saveDb(db);
-    console.log("Record Added Successfully");
-    res.redirect('/event')
-})
-
-Router.get('/event', (req, res) => {
-    const db = getDb();
-    // Start with partnerships
-    const partnerships = db.partnerships.map(p => {
-        // manually populate manufacturer data if needed
-        const m = db.users.find(u => u.id === p.manufacturer_id);
-        return {
-            ...p,
-            manufacturer: m ? mapUserToTemplate(m) : {}
-        };
-    });
-    res.render('events', { data: partnerships });
-})
-
-Router.post('/meeting', (req, res) => {
-    const select = req.body.select
-    const address = req.body.address
-
-    const db = getDb();
-    const index = db.users.findIndex(u => u.id === select);
-
-    if (index !== -1) {
-        if (!db.users[index].meeting_locations) db.users[index].meeting_locations = [];
-        db.users[index].meeting_locations.push({
-            location_id: generateId(),
-            address: address
+    try {
+        await prisma.user.update({
+            where: { id: req.body.conid },
+            data: {
+                isPremium: true,
+                subscriptionType: req.body.role.toLowerCase()
+            }
         });
-        saveDb(db);
-        // Redirect logic from original:
-        res.redirect('/consumer')
-    } else {
+        res.redirect('/editprofile');
+    } catch (err) {
+        console.error(err);
+        res.redirect('/editprofile');
+    }
+});
+
+Router.post('/cevent', async (req, res) => {
+    try {
+        await prisma.partnership.create({
+            data: {
+                manufacturerId: req.body.id,
+                partnerCompanyName: req.body.company,
+                partnerBenefits: req.body.benefit
+            }
+        });
+        res.redirect('/event');
+    } catch (err) {
+        console.error(err);
+        res.redirect('/event');
+    }
+});
+
+Router.get('/event', async (req, res) => {
+    try {
+        const partnerships = await prisma.partnership.findMany({
+            include: { manufacturer: true }
+        });
+
+        const data = partnerships.map(p => ({
+            ...p,
+            manufacturer: mapUserToTemplate(p.manufacturer)
+        }));
+
+        res.render('events', { data });
+    } catch (err) {
+        console.error(err);
+        res.render('events', { data: [] });
+    }
+});
+
+Router.post('/meeting', async (req, res) => {
+    try {
+        await prisma.meetingLocation.create({
+            data: {
+                manufacturerId: req.body.select,
+                address: req.body.address
+            }
+        });
+        res.redirect('/consumer');
+    } catch (err) {
+        console.error(err);
         res.redirect('/home');
     }
-})
+});
 
-
-Router.get('/del/:id/:ids', (req, res) => {
-    const id = req.params.id // Location ID
-    const ids = req.params.ids // Manufacturer ID
-
-    const db = getDb();
-    const index = db.users.findIndex(u => u.id === ids);
-
-    if (index !== -1 && db.users[index].meeting_locations) {
-        db.users[index].meeting_locations = db.users[index].meeting_locations.filter(m => m.location_id !== id);
-        saveDb(db);
-        res.redirect(`/manufacturer/${ids}`);
-    } else {
-        res.redirect(`/manufacturer/${ids}`);
+Router.get('/del/:id/:ids', async (req, res) => {
+    try {
+        await prisma.meetingLocation.delete({
+            where: { id: req.params.id }
+        });
+        res.redirect(`/manufacturer/${req.params.ids}`);
+    } catch (err) {
+        console.error(err);
+        res.redirect(`/manufacturer/${req.params.ids}`);
     }
-})
+});
 
-
-app.use('/', Router)
+// Start Server
+app.use('/', Router);
 app.listen(5000, () => {
-    console.log('Server is listening on port', 5000);
-})
+    console.log('Server is listening on port 5000');
+    console.log('PostgreSQL database connected via Prisma');
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    await prisma.$disconnect();
+    process.exit(0);
+});

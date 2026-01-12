@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(uuid())
+  username        String   @unique
+  email           String
+  password        String
+  role            String   // 'M' (Manufacturer), 'C' (Consumer), 'A' (Admin)
+  
+  // Profile fields
+  contactName     String?  @map("contact_name")
+  contactEmail    String?  @map("contact_email")
+  companyName     String?  @map("company_name")
+  websiteUrl      String?  @map("website_url")
+  address         String?
+  contactPhone    String?  @map("contact_phone")
+  image           String?
+  
+  // Manufacturer-specific
+  rawMaterials    String?  @map("raw_materials")
+  
+  // Rating system
+  rating          Int      @default(0)
+  isPremium       Boolean  @default(false) @map("is_premium")
+  subscriptionType String? @map("subscription_type")
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  reviewsGiven    Review[]       @relation("ConsumerReviews")
+  reviewsReceived Review[]       @relation("ManufacturerReviews")
+  partnerships    Partnership[]
+  meetingLocations MeetingLocation[]
+  
+  @@map("users")
+}
+
+model Review {
+  id             String   @id @default(uuid())
+  rating         Int
+  createdAt      DateTime @default(now()) @map("created_at")
+  
+  consumerId     String   @map("consumer_id")
+  manufacturerId String   @map("manufacturer_id")
+  
+  consumer       User     @relation("ConsumerReviews", fields: [consumerId], references: [id], onDelete: Cascade)
+  manufacturer   User     @relation("ManufacturerReviews", fields: [manufacturerId], references: [id], onDelete: Cascade)
+  
+  @@map("reviews")
+}
+
+model Partnership {
+  id                  String   @id @default(uuid())
+  partnerCompanyName  String   @map("partner_company_name")
+  partnerBenefits     String   @map("partner_benefits")
+  createdAt           DateTime @default(now()) @map("created_at")
+  
+  manufacturerId      String   @map("manufacturer_id")
+  manufacturer        User     @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  
+  @@map("partnerships")
+}
+
+model Support {
+  id          String   @id @default(uuid())
+  email       String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  @@map("support")
+}
+
+model MeetingLocation {
+  id             String   @id @default(uuid())
+  address        String
+  createdAt      DateTime @default(now()) @map("created_at")
+  
+  manufacturerId String   @map("manufacturer_id")
+  manufacturer   User     @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  
+  @@map("meeting_locations")
+}
