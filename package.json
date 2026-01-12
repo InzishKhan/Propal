@@ -2,9 +2,9 @@
   "name": "propal_gui",
   "version": "1.0.0",
   "description": "",
-  "main": "controller.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node controller.js",
+    "start": "node app.js",
     "db:studio": "npx prisma studio",
     "db:migrate": "npx prisma migrate dev",
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -1,6 +1,6 @@
 # Propal - B2B Manufacturing Platform
 
-A comprehensive B2B (Business-to-Business) manufacturing marketplace platform that connects verified manufacturers with businesses seeking raw materials and manufacturing resources.
+A professional B2B (Business-to-Business) manufacturing marketplace platform that connects verified manufacturers with businesses seeking raw materials and manufacturing resources.
 
 ## Overview
 
@@ -12,29 +12,29 @@ Propal provides a bridge between manufacturers and consumers, facilitating:
 - **Meeting Scheduling** - Schedule onsite meetings with manufacturers
 
 ### Tech Stack
-- **Backend:** Node.js, Express.js
+- **Backend:** Node.js, Express.js (MVC Architecture)
 - **Database:** PostgreSQL (Running in Docker)
 - **ORM:** Prisma
 - **Frontend:** EJS, Bootstrap, jQuery
 
 ## Project Structure
 
+The project follows a modular **Model-View-Controller (MVC)** pattern for better maintainability:
+
 ```
 Propal/
-├── controller.js           # Main Express server & route handlers
-├── db.js                   # Legacy JSON database logic (replaced by Prisma)
-├── docker-compose.yml      # Docker configuration for PostgreSQL
-├── prisma/
-│   └── schema.prisma       # Database schema definition
-├── views/                  # EJS Templates
-│   ├── index.ejs           # Homepage
-│   ├── login.ejs           # Login page
-│   ├── signup.ejs          # Registration page
-│   ├── about.ejs           # About page
-│   ├── ProfileManu1.ejs    # Manufacturer profile
-│   └── ProfileCon1.ejs     # Consumer profile
-├── assets/                 # CSS, Images, JS
-└── vendor/                 # Frontend libraries
+├── app.js                 # Entry point - server configuration
+├── config/                # Configuration (Database client, utils)
+├── controllers/           # Business logic (split by feature)
+│   ├── authController.js
+│   ├── mainController.js
+│   ├── profileController.js
+│   └── featureController.js
+├── routes/                # Route definitions
+├── prisma/                # Database schema & migrations
+├── views/                 # EJS Templates (Frontend)
+├── docker-compose.yml     # Docker configuration for PostgreSQL
+└── package.json           # Scripts and dependencies
 ```
 
 ## Setup & Installation
@@ -57,7 +57,7 @@ Propal/
    ```
 
 3. **Start the database (Docker)**
-   Make sure Docker Desktop is running, then execute:
+   Ensure Docker Desktop is running, then execute:
    ```bash
    docker-compose up -d
    ```
@@ -65,53 +65,30 @@ Propal/
 4. **Initialize the database**
    Run the Prisma migrations to create the tables in PostgreSQL:
    ```bash
-   npx prisma migrate dev --name init
+   npm run db:migrate -- --name init
    ```
 
 5. **Start the server**
    ```bash
-   node controller.js
+   npm start
    ```
 
 6. **Access the application**
-   - Open your browser and navigate to `http://localhost:5000`
+   - Application: `http://localhost:5000`
+   - Database Browser (GUI): `npm run db:studio`
 
-## API Routes
+## Database Management
 
-### Authentication
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/login` | Login page |
-| POST | `/login` | Handle login |
-| GET | `/signup` | Registration page |
-| POST | `/signup` | Create user account |
-| GET | `/logout` | Destroy session |
-
-### Marketplace
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/explore` | Explore manufacturers |
-| POST | `/searchexplore` | Search manufacturers |
-| GET | `/manufacturer/:id` | View manufacturer profile |
-| POST | `/review` | Submit manufacturer review |
-| POST | `/meeting` | Schedule meeting |
-| POST | `/cevent` | Create partnership/event |
-| GET | `/event` | View partnerships |
-
-## Premium Tier System
-
-Manufacturers are automatically promoted to premium tiers based on their ratings:
-
-| Rating | Tier |
-|--------|------|
-| 2+ | Basic |
-| 3+ | Standard |
-| 4+ | Premium |
+| Command | Description |
+|---------|-------------|
+| `npm start` | Starts the production server |
+| `npm run db:studio` | Opens Prisma Studio to view/edit data in the browser |
+| `npm run db:migrate` | Synchronizes schema changes with the database |
 
 ## Future Development
+- [x] Refactor to MVC Architecture
 - [x] Migrate to PostgreSQL with Prisma
 - [x] Dockerize database environment
-- [ ] Create separate route modules (MVC architecture)
 - [ ] Add unit and integration tests
 - [ ] Implement real-time notifications
 - [ ] Add messaging system between manufacturers and consumers
