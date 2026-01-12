@@ -9,8 +9,12 @@ const featureController = require('../controllers/featureController');
 
 // File Upload Configuration
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, './views/uploads'),
-    filename: (req, file, cb) => cb(null, file.originalname)
+    destination: (req, file, cb) => cb(null, './public/uploads'),
+    filename: (req, file, cb) => {
+        // Secure file upload: Prepend timestamp to prevent overwrites and collisions
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
+    }
 });
 const upload = multer({ storage });
 
@@ -23,7 +27,7 @@ router.post('/contact', mainController.postContact);
 // --- Authentication ---
 router.get('/login', authController.getLogin);
 router.post('/login', authController.postLogin);
-router.get('/logout', authController.logout);
+router.get('/logout', authController.logout); // Note: Should ideally be POST for CSRF protection
 router.get('/signup', authController.getSignup);
 router.post('/signup', authController.postSignup);
 router.post('/signupcon', upload.single('Picture'), authController.postSignupConsumer);
@@ -37,7 +41,7 @@ router.post('/searchexplore', mainController.postSearchExplore);
 router.get('/editprofile', profileController.getEditProfile);
 router.post('/update', upload.single('Picture'), profileController.postUpdateProfile);
 router.get('/consumer', profileController.getConsumerProfile);
-router.get('/manufuacturerp', profileController.getManufacturerProfileSelf);
+router.get('/manufacturerp', profileController.getManufacturerProfileSelf); // Fixed typo
 router.get('/manufacturer/:id', profileController.getManufacturerProfilePublic);
 
 // --- Features ---

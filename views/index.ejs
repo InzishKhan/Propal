@@ -121,21 +121,27 @@
       color: var(--primary-color) !important;
     }
 
-    /* Button Styling in Nav */
-    .nav-btn {
+    /* Button Styling in Nav - Increased Specificity and Flexbox Alignment */
+    .header-area .main-nav .nav li a.nav-btn {
       background-color: var(--primary-color) !important;
       color: #fff !important;
-      padding: 10px 25px !important;
+      padding: 0 25px !important;
+      height: 44px !important;
+      line-height: 44px !important;
       border-radius: 50px !important;
       font-weight: 600 !important;
       box-shadow: 0 4px 10px rgba(106, 83, 218, 0.3);
       transition: transform 0.2s;
+      display: inline-flex !important;
+      align-items: center;
+      justify-content: center;
     }
 
-    .nav-btn:hover {
+    .header-area .main-nav .nav li a.nav-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 15px rgba(106, 83, 218, 0.4);
       color: #fff !important;
+      background-color: #553eb5 !important;
     }
 
     /* --- REVAMPED BANNER --- */
@@ -314,7 +320,7 @@ https://templatemo.com/tm-586-scholar
                     <%}%>
 
                       <% if(check==2){%>
-                        <li><a href="/manufuacturerp" style="color: var(--primary-color) !important;">Dashboard</a></li>
+                        <li><a href="/manufacturerp" style="color: var(--primary-color) !important;">Dashboard</a></li>
                         <li><a href="/logout" class="nav-btn">Logout</a></li>
                         <%}%>
             </ul>
@@ -384,68 +390,30 @@ https://templatemo.com/tm-586-scholar
       <div class="row">
         <div class="col-lg-6 offset-lg-1">
           <div class="accordion" id="accordionExample">
-            <div class="accordion-item">
-              <h2 class="accordion-header" id="headingOne">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne"
-                  aria-expanded="true" aria-controls="collapseOne">
-                  Where shall we begin?
-                </button>
-              </h2>
-              <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
-                data-bs-parent="#accordionExample">
-                <div class="accordion-body">
-                  Dolor <strong>almesit amet</strong>, consectetur adipiscing elit, sed doesn't eiusmod tempor
-                  incididunt ut labore consectetur <code>adipiscing</code> elit, sed do eiusmod tempor incididunt ut
-                  labore et dolore magna aliqua. Quis ipsum suspendisse ultrices gravida.
+            <% if(accordionData && accordionData.length> 0) {
+              accordionData.forEach(function(item, index) {
+              let collapseId = "collapse" + index;
+              let headingId = "heading" + index;
+              let showClass = index === 0 ? "show" : "";
+              let collapsedClass = index === 0 ? "" : "collapsed";
+              let ariaExpanded = index === 0 ? "true" : "false";
+              %>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="<%= headingId %>">
+                  <button class="accordion-button <%= collapsedClass %>" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#<%= collapseId %>" aria-expanded="<%= ariaExpanded %>"
+                    aria-controls="<%= collapseId %>">
+                    <%= item.title %>
+                  </button>
+                </h2>
+                <div id="<%= collapseId %>" class="accordion-collapse collapse <%= showClass %>"
+                  aria-labelledby="<%= headingId %>" data-bs-parent="#accordionExample">
+                  <div class="accordion-body">
+                    <%= item.content %>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="accordion-item">
-              <h2 class="accordion-header" id="headingTwo">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                  data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                  How do we work together?
-                </button>
-              </h2>
-              <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
-                data-bs-parent="#accordionExample">
-                <div class="accordion-body">
-                  Dolor <strong>almesit amet</strong>, consectetur adipiscing elit, sed doesn't eiusmod tempor
-                  incididunt ut labore consectetur <code>adipiscing</code> elit, sed do eiusmod tempor incididunt ut
-                  labore et dolore magna aliqua. Quis ipsum suspendisse ultrices gravida.
-                </div>
-              </div>
-            </div>
-            <div class="accordion-item">
-              <h2 class="accordion-header" id="headingThree">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                  data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                  Why SCHOLAR is the best?
-                </button>
-              </h2>
-              <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree"
-                data-bs-parent="#accordionExample">
-                <div class="accordion-body">
-                  There are more than one hundred responsive HTML templates to choose from <strong>Template</strong>Mo
-                  website. You can browse by different tags or categories.
-                </div>
-              </div>
-            </div>
-            <div class="accordion-item">
-              <h2 class="accordion-header" id="headingFour">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                  data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                  Do we get the best support?
-                </button>
-              </h2>
-              <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour"
-                data-bs-parent="#accordionExample">
-                <div class="accordion-body">
-                  You can also search on Google with specific keywords such as
-                  <code>templatemo business templates, templatemo gallery templates, admin dashboard templatemo, 3-column templatemo, etc.</code>
-                </div>
-              </div>
-            </div>
+              <% }); } %>
           </div>
         </div>
         <div class="col-lg-5 align-self-center">
@@ -479,8 +447,10 @@ https://templatemo.com/tm-586-scholar
 
             <div class="team-member m-4">
               <div class="main-content">
-                <img src="../uploads/<%=data.image%>" alt="">
-                <span class="category">UX Teacher</span>
+                <img src="/uploads/<%=data.image%>" alt="">
+                <span class="category">
+                  <%= data.raw_materials ? data.raw_materials.split(',')[0] : 'Manufacturer' %>
+                </span>
                 <h4>
                   <%=data.company_name%>
                 </h4>
@@ -501,32 +471,21 @@ https://templatemo.com/tm-586-scholar
       <div class="row">
         <div class="col-lg-7">
           <div class="owl-carousel owl-testimonials">
-            <div class="item">
-              <p>“The Best Copmany you can find!”</p>
-              <div class="author">
-                <img src="assets/images/testimonial-author.jpg" alt="">
-                <span class="category">Full Stack Master</span>
-                <h4>Claude David</h4>
+            <% if(testimonialData && testimonialData.length> 0) {
+              testimonialData.forEach(function(testimonial) { %>
+              <div class="item">
+                <p>“<%= testimonial.text %>”</p>
+                <div class="author">
+                  <img src="assets/images/testimonial-author.jpg" alt="">
+                  <span class="category">
+                    <%= testimonial.role %>
+                  </span>
+                  <h4>
+                    <%= testimonial.author %>
+                  </h4>
+                </div>
               </div>
-            </div>
-            <div class="item">
-              <p>“Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-                dolore magna aliqua. Quis ipsum suspendisse ultrices gravid.”</p>
-              <div class="author">
-                <img src="assets/images/testimonial-author.jpg" alt="">
-                <span class="category">UI Expert</span>
-                <h4>Thomas Jefferson</h4>
-              </div>
-            </div>
-            <div class="item">
-              <p>“Scholar is free website template provided by TemplateMo for educational related websites. This CSS
-                layout is based on Bootstrap v5.3.0 framework.”</p>
-              <div class="author">
-                <img src="assets/images/testimonial-author.jpg" alt="">
-                <span class="category">Digital Animator</span>
-                <h4>Stella Blair</h4>
-              </div>
-            </div>
+              <% }); } %>
           </div>
         </div>
         <div class="col-lg-5 align-self-center">
@@ -546,7 +505,7 @@ https://templatemo.com/tm-586-scholar
   <footer>
     <div class="container">
       <div class="col-lg-12">
-        <p>Copyright © 2036 Scholar Organization. All rights reserved. &nbsp;&nbsp;&nbsp;
+        <p>Copyright © 2026 ProPal. All rights reserved.</p>
       </div>
     </div>
   </footer>

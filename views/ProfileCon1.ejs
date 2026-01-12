@@ -1,311 +1,421 @@
-﻿
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Profile Page</title>
-    <!-- Bootstrap CSS -->
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
-      crossorigin="anonymous"
-    />
 
-          <link rel="stylesheet" href="assets/css/fontawesome.css">
-          <link rel="stylesheet" href="assets/css/templatemo-scholar.css">
-          <link rel="stylesheet" href="assets/css/owl.css">
-          <link rel="stylesheet" href="assets/css/animate.css">
-          <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consumer Dashboard | ProPal</title>
 
-      <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-      <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.1/js/bootstrap.min.js"></script>
-      <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
-      <!------ Include the above in your HEAD tag ---------->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/fontawesome.css">
+  <link rel="stylesheet" href="assets/css/templatemo-scholar.css">
+  <link rel="stylesheet" href="assets/css/owl.css">
+  <link rel="stylesheet" href="assets/css/animate.css">
+  <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css" />
 
-<!-- Font Awesome Icon Library -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+    :root {
+      --primary-color: #6a53da;
+      --secondary-color: #f3f2ff;
+      --accent-color: #fe6060;
+      --dark-text: #1a1a1a;
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --glass-border: rgba(106, 83, 218, 0.2);
+    }
 
-    <!-- Custom CSS -->
-    <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      overflow-x: hidden;
+      color: var(--dark-text);
+      background-color: #f4f6f9;
+    }
 
-       .checked {
-         color: orange;
-         }
-      body {
-        background-color: #DDD0C8;
-        font-family: "Open Sans", sans-serif;
-      }
+    /* --- IMPROVED HEADER --- */
+    .header-area {
+      background-color: #ffffff !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0;
+      right: 0;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08) !important;
+      height: 90px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
 
-      .profile-header {
-        background-image: url("https://media.istockphoto.com/id/1036551174/photo/wood-raw-material-trunk-tree.jpg?s=1024x1024&w=is&k=20&c=nxIpytYoL4kenm0eMh2mEfzG05hf3kbGXU4Tip-vWsw=");
-        background-size: cover;
-        background-position: center;
-        height: 300px;
-      }
+    .header-area .container {
+      max-width: 100%;
+      padding: 0 50px;
+    }
 
-      .profile-pic {
-        border: 5px solid #fff;
-        border-radius: 50%;
-        width: 150px;
-        height: 150px;
-        margin-top: -75px;
-        margin-left: 30px;
-      }
+    .header-area .main-nav {
+      background: transparent;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
 
-      .profile-name {
-        font-size: 28px;
-        font-weight: 600;
-        margin-top: 15px;
-      }
+    .header-area .main-nav .logo {
+      display: flex;
+      align-items: center;
+    }
 
-      .profile-username {
-        font-size: 20px;
-        color: #888;
-      }
+    .header-area .main-nav .logo h1 {
+      font-size: 28px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      color: var(--primary-color) !important;
+      margin: 0;
+    }
 
-         .badge {
-  display: inline-block;
-  background-color: #1DA1F2;
-  color: #fff;
-  font-weight: bold;
-  font-size: 14px;
-  padding: 5px 10px;
-  border-radius: 20px;
-}
+    .header-area .main-nav .nav {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      height: auto;
+    }
 
+    .header-area .main-nav .nav li {
+      margin-left: 30px;
+      display: inline-block;
+    }
 
-      .profile-bio {
-        font-size: 18px;
-        margin-top: 20px;
-      }
+    .header-area .main-nav .nav li a {
+      display: block;
+      padding: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: #444 !important;
+      text-transform: capitalize;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      background: transparent !important;
+    }
 
-      .profile-stats {
-        margin-top: 30px;
-      }
+    .header-area .main-nav .nav li a:hover,
+    .header-area .main-nav .nav li a.active {
+      color: var(--primary-color) !important;
+    }
 
-      .profile-stat-count {
-        font-size: 22px;
-        font-weight: 600;
-        margin-bottom: 0;
-      }
+    .header-area .main-nav .nav li a.nav-btn {
+      background-color: var(--primary-color) !important;
+      color: #fff !important;
+      padding: 0 25px !important;
+      height: 44px !important;
+      line-height: normal !important;
+      /* Reset line-height for flex */
+      border-radius: 50px !important;
+      font-weight: 600 !important;
+      box-shadow: 0 4px 10px rgba(106, 83, 218, 0.3);
+      transition: transform 0.2s;
+      display: inline-flex !important;
+      align-items: center;
+      justify-content: center;
+    }
 
-      .profile-stat-label {
-        font-size: 16px;
-        color: #888;
-        margin-top: 5px;
-      }
+    .header-area .main-nav .nav li a.nav-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(106, 83, 218, 0.4);
+      color: #fff !important;
+      background-color: #553eb5 !important;
+    }
 
-      .profile-edit-btn {
-        display: inline-block;
-        background-color: #ffd800;
-        color: #fff;
-        padding: 8px 16px;
-        border-radius: 5px;
-        text-decoration: none;
-        font-size: 18px;
-        font-weight: 600;
-        margin-top: 20px;
-        transition: all 0.3s ease-in-out;
-      }
+    /* --- PROFILE DASHBOARD STYLES --- */
+    .dashboard-container {
+      margin-top: 140px;
+      margin-bottom: 60px;
+    }
 
-      .profile-edit-btn:hover {
-        background-color: #2680c2;
-      }
+    .profile-card,
+    .details-card {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
 
-      .profile-actions {
-        margin-top: 20px;
-      }
+    .profile-header-bg {
+      background: linear-gradient(135deg, #7a6ad8 0%, #5d4ad1 100%);
+      height: 120px;
+      position: relative;
+    }
 
-      .profile-action-btn {
-        display: inline-block;
-        background-color: #fff;
-        color: #333;
-        padding: 5px 10px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        font-size: 18px;
-        font-weight: 600;
-        margin-right: 10px;
-        text-decoration: none;
-        transition: all 0.3s ease-in-out;
-      }
+    .profile-img-container {
+      width: 140px;
+      height: 140px;
+      margin: -70px auto 0;
+      position: relative;
+      border-radius: 50%;
+      border: 5px solid #ffffff;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
 
-      .profile-action-btn:hover {
-        background-color: #eee;
-      }
+    .profile-img-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
-      .profile-posts {
-        margin-top: 30px;
-      }
+    .profile-info {
+      text-align: center;
+      padding: 20px 30px 40px;
+    }
 
-      .profile-post {
-        margin-bottom: 30px;
-      }
+    .profile-info h3 {
+      font-weight: 700;
+      color: var(--dark-text);
+      margin-bottom: 5px;
+      font-size: 24px;
+    }
 
-      .profile-post-img {
-        max-width: 100%;
-      }
+    .profile-info p.role {
+      color: var(--primary-color);
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
 
-      .rating {
-  display: inline-block;
-}
+    .detail-row {
+      display: flex;
+      padding: 20px 0;
+      border-bottom: 1px solid #f0f0f0;
+      align-items: center;
+    }
 
-.rating input[type="radio"] {
-  display: none;
-}
+    .detail-row:last-child {
+      border-bottom: none;
+    }
 
-.rating label {
-  font-size: 24px;
-  color: #ccc;
-  cursor: pointer;
-  display: inline-block;
-  width: 30px;
-  text-align: center;
-  margin-right: 5px;
-  line-height: 30px;
-}
+    .detail-label {
+      width: 150px;
+      font-weight: 600;
+      color: #666;
+    }
 
-.rating label:before {
-  content: '\2605';
-}
+    .detail-value {
+      font-weight: 500;
+      color: #333;
+      flex: 1;
+    }
 
-.rating input[type="radio"]:checked + label {
-  color: #ffca08;
-}
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 10px;
+    }
 
-body {
-  /* Light Mode Styles */
-  background-color: #f7f7f7;
-  color: #333;
-}
+    /* Meeting Form Styling */
+    .meeting-form {
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 15px;
+      margin-top: 30px;
+    }
 
-body.dark-mode {
-  /* Dark Mode Styles */
-  background-color: #333;
-  color: #f7f7f7;
-}
+    .form-control-custom {
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 12px 20px;
+      width: 100%;
+      margin-bottom: 15px;
+      transition: all 0.3s;
+    }
 
-button#theme-toggle {
-  padding: 10px;
-  background-color: #333;
-  color: #f7f7f7;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
- .animated {
-    -webkit-transition: height 0.2s;
-    -moz-transition: height 0.2s;
-    transition: height 0.2s;
-}
+    .form-control-custom:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(106, 83, 218, 0.1);
+      outline: none;
+    }
 
-.stars
-{
-    margin: 20px 0;
-    font-size: 24px;
-    color: #d17581;
-}
-.dc{
-  background-color: rgb(219, 194, 219);
-}
-    </style>
-  <body>
+    .btn-action {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      padding: 12px 30px;
+      border-radius: 50px;
+      font-weight: 600;
+      border: none;
+      transition: all 0.3s;
+      cursor: pointer;
+      display: inline-block;
+      text-align: center;
+    }
 
-    <section style="background-color: #eee;">
-      <div class="container py">
-        <div class="row">
-          <div class="col">
-            <nav aria-label="breadcrumb" class="bg-light rounded-3 p-3 mb-4">
-              <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="/home">Home</a></li>
-                <li class="breadcrumb-item"><a href="/explore">explore</a></li>
-              </ol>
-            </nav>
-          </div>
+    .btn-action:hover {
+      background-color: #553eb5;
+      transform: translateY(-2px);
+      color: #fff;
+    }
+
+    .btn-secondary-custom {
+      background-color: #fff;
+      color: var(--primary-color);
+      border: 2px solid var(--primary-color);
+    }
+
+    .btn-secondary-custom:hover {
+      background-color: var(--primary-color);
+      color: #fff;
+    }
+
+    .premium-badge {
+      vertical-align: middle;
+      margin-left: 5px;
+      width: 20px;
+      height: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ***** Header Area Start ***** -->
+  <header class="header-area">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <nav class="main-nav">
+            <!-- ***** Logo Start ***** -->
+            <a href="/home" class="logo">
+              <h1>ProPal</h1>
+            </a>
+            <!-- ***** Logo End ***** -->
+
+            <!-- ***** Menu Start ***** -->
+            <ul class="nav">
+              <li><a href="/home">Home</a></li>
+              <li><a href="/explore">Manufacturers</a></li>
+              <li><a href="/event">Events</a></li>
+              <li><a href="/consumer" class="active">Dashboard</a></li>
+              <li><a href="/logout" class="nav-btn">Logout</a></li>
+            </ul>
+            <!-- ***** Menu End ***** -->
+          </nav>
         </div>
-    
-        <div class="row">
-          <div class="col-lg-4">
-            <div class="card mb-4">
-              <div class="card-body text-center">
-                <img src="../uploads/<%=data.image%>" alt="avatar"
-                  class="rounded-circle img-fluid" style="width: 150px;">
-                <h5 class="my-3"><%=data.company_name%> <%if(data.is_premium==1){%>
-                  <img src="../uploads/check.png" alt="" style="height: 22px; width: 22px;">
-                  <%}%></h5>
-                <p class="text-muted mb-1"><%=data.contact_name%></p>
-              </div>
-            </div>
-           
+      </div>
+    </div>
+  </header>
+  <!-- ***** Header Area End ***** -->
 
+  <div class="container dashboard-container">
+    <div class="row">
+      <!-- Profile Sidebar -->
+      <div class="col-lg-4">
+        <div class="profile-card">
+          <div class="profile-header-bg"></div>
+          <div class="profile-img-container">
+            <img src="/uploads/<%=data.image ? data.image : 'default.jpg'%>" alt="Profile">
           </div>
-          <div class="col-lg-8">
-            <div class="card mb-4">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-sm-3">
-                    <p class="mb-0">Full Name</p>
-                  </div>
-                  <div class="col-sm-9">
-                   
-                    <p class="text-muted mb-0"><%=data.company_name%></p>
-                  </div>
-                </div>
-                <hr>
-                <div class="row">
-                  <div class="col-sm-3">
-                    <p class="mb-0">Email</p>
-                  </div>
-                  <div class="col-sm-9">
-                    <p class="text-muted mb-0"><%=data.contact_email%></p>
-                  </div>
-                </div>
-                <hr>
-                <div class="row">
-                  <div class="col-sm-3">
-                    <p class="mb-0">Phone</p>
-                  </div>
-                  <div class="col-sm-9">
-                    <p class="text-muted mb-0"><%=data.contact_phone%></p>
-                  </div>
-                </div>
-                <hr>
-                <div class="row">
-                  <div class="col-sm-3">
-                    <p class="mb-0">Address</p>
-                  </div>
-                  <div class="col-sm-9">
-                    <p class="text-muted mb-0"><%=data.address%></p>
-                  </div>
-                </div>
-              </div>
-              <div class="main-button">
-            <a href="/editprofile">Edit Profile</a>
+          <div class="profile-info">
+            <h3>
+              <%=data.company_name%>
+                <%if(data.is_premium==1){%>
+                  <img src="/uploads/check.png" alt="Premium" class="premium-badge">
+                  <%}%>
+            </h3>
+            <p class="role">Consumer Account</p>
+            <p class="text-muted">
+              <%=data.contact_name%>
+            </p>
+
+            <div class="mt-4">
+              <a href="/editprofile" class="btn-action btn-secondary-custom w-100">Edit Profile</a>
             </div>
-                <form class="col lg-8" action="/meeting" method="post">
-                  <div class="main-button">
-                  <select class="profile-edit-btn m-1 dc" name="select" aria-label="Default select example" required>
-                    <%if(manfact.length> 0){
-                      manfact.forEach(function(data){
-                      %>
-                    <option value="<%=data.manufacturer_id%>"><%=data.company_name%></option>
-                        <% }); } %>
-                  </select>
-                  </div>
-                  <input  class="col-sm-4 py-2 m-2" type="text" name="address" placeholder="enter your Address">
-                  <input type="submit" class="btn" value="Schedule Meeting">
-                </form>
-            </div>
-          
           </div>
         </div>
       </div>
-   
-    </section>
 
+      <!-- Main Content -->
+      <div class="col-lg-8">
+        <div class="details-card">
+          <div class="card-body" style="padding: 40px;">
+            <h4 class="section-title">Company Details</h4>
+
+            <div class="detail-row">
+              <div class="detail-label">Company Name</div>
+              <div class="detail-value">
+                <%=data.company_name || 'Not set' %>
+              </div>
+            </div>
+
+            <div class="detail-row">
+              <div class="detail-label">Contact Email</div>
+              <div class="detail-value">
+                <%=data.contact_email || 'Not set' %>
+              </div>
+            </div>
+
+            <div class="detail-row">
+              <div class="detail-label">Phone Number</div>
+              <div class="detail-value">
+                <%=data.contact_phone || 'Not set' %>
+              </div>
+            </div>
+
+            <div class="detail-row">
+              <div class="detail-label">Address</div>
+              <div class="detail-value">
+                <%=data.address || 'Not set' %>
+              </div>
+            </div>
+
+            <div class="meeting-form">
+              <h4 class="section-title">Schedule a Meeting</h4>
+              <p class="text-muted mb-4">Connect with manufacturers directly.</p>
+
+              <form action="/meeting" method="post">
+                <div class="row">
+                  <div class="col-md-12">
+                    <label class="mb-2 fw-bold text-muted">Select Manufacturer</label>
+                    <select class="form-control-custom" name="select" required>
+                      <option value="" disabled selected>Choose a manufacturer...</option>
+                      <%if(manfact && manfact.length> 0){
+                        manfact.forEach(function(m){
+                        %>
+                        <option value="<%=m.manufacturer_id%>">
+                          <%=m.company_name%>
+                        </option>
+                        <% }); } %>
+                    </select>
+                  </div>
+
+                  <div class="col-md-12">
+                    <label class="mb-2 fw-bold text-muted">Meeting Address / Topic</label>
+                    <input class="form-control-custom" type="text" name="address"
+                      placeholder="Enter meeting location or topic">
+                  </div>
+
+                  <div class="col-md-12 mt-2">
+                    <button type="submit" class="btn-action">Schedule Meeting</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+  <script src="assets/js/custom.js"></script>
 
 </body>
 

@@ -52,21 +52,20 @@ https://templatemo.com/tm-586-scholar
                     <nav class="main-nav">
                         <!-- ***** Logo Start ***** -->
                         <a href="/home" class="logo">
-                        <h1>ProPal</h1>
+                            <h1>ProPal</h1>
                         </a>
                         <!-- ***** Logo End ***** -->
                         <!-- ***** Serach Start ***** -->
                         <div class="search-input">
                             <form action="/searchexplore" method="post" id="search">
-                                <input type="text" placeholder="Type Something" id='searchText' name="searchval"
-                                     />
+                                <input type="text" placeholder="Type Something" id='searchText' name="searchval" />
                                 <i class="fa fa-search"></i>
                             </form>
                         </div>
                         <!-- ***** Serach Start ***** -->
                         <!-- ***** Menu Start ***** -->
                         <ul class="nav">
-                            <li class="scroll-to-section"><a href="/home" >Home</a></li>
+                            <li class="scroll-to-section"><a href="/home">Home</a></li>
                             <li class="scroll-to-section"><a href="/explore" class="active">Manufactures</a></li>
                             <li class="scroll-to-section"><a href="/event">Events</a></li>
                             <li class="scroll-to-section"><a href="/about">About</a></li>
@@ -100,29 +99,35 @@ https://templatemo.com/tm-586-scholar
                     <%if(data.length> 0){
                         data.forEach(function(data){
                         %>
-                <div class="col-lg-4 col-md-6 align-self-center mb-30 event_outer col-md-6 design">
-                    <div class="events_item">
-                        <div class="thumb">
-                            <a href="/manufacturer/<%=data.manufacturer_id%>">
-                            <img src="../uploads/<%=data.image%>" alt="" style="width: 30% !important; height: 20% !important;">
-                    </a>
+                        <div class="col-lg-4 col-md-6 align-self-center mb-30 event_outer col-md-6 design">
+                            <div class="events_item">
+                                <div class="thumb">
+                                    <a href="/manufacturer/<%=data.manufacturer_id%>">
+                                        <img src="/uploads/<%=data.image%>" alt=""
+                                            style="width: 30% !important; height: 20% !important;">
+                                    </a>
+                                </div>
+                                <div class="down-content">
+                                    <span class="author">
+                                        <%=data.company_name%>
+                                            <%if(data.is_premium==1){%>
+                                                <img src="/uploads/check.png" alt="" style="height: 22px; width: 22px;">
+                                                <%}%>
+                                    </span>
+                                    <h4>
+                                        <%=data.contact_email%>
+                                    </h4>
+                                    <h4>
+                                        <%=data.rating%>
+                                    </h4>
+                                </div>
                             </div>
-                        <div class="down-content">
-                            <span class="author"><%=data.company_name%>
-                                <%if(data.is_premium==1){%>
-                                    <img src="../uploads/check.png" alt="" style="height: 22px; width: 22px;">
-                                    <%}%>
-                                        </span>
-                            <h4><%=data.contact_email%></h4>
-                            <h4><%=data.rating%></h4>
                         </div>
-                    </div>
-                </div>
-                <% }); } %>
-                
-                    <%} else {%>
-                        <div> Sorry No Record Found</div>
-                        <%}%>
+                        <% }); } %>
+
+                            <%} else {%>
+                                <div> Sorry No Record Found</div>
+                                <%}%>
             </div>
         </div>
     </section>
@@ -130,8 +135,7 @@ https://templatemo.com/tm-586-scholar
     <footer>
         <div class="container">
             <div class="col-lg-12">
-                <p>Copyright © 2036 Scholar Organization. All rights reserved. &nbsp;&nbsp;&nbsp; Design: <a
-                        href="https://templatemo.com" rel="nofollow" target="_blank">TemplateMo</a></p>
+                <p>Copyright © 2026 ProPal. All rights reserved.</p>
             </div>
         </div>
     </footer>

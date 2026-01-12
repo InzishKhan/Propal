@@ -1,4 +1,6 @@
 const prisma = require('../config/db');
+const bcrypt = require('bcryptjs');
+const path = require('path');
 
 exports.getLogin = (req, res) => {
     if (req.session.username) return res.redirect('/home');
@@ -7,26 +9,26 @@ exports.getLogin = (req, res) => {
 
 exports.postLogin = async (req, res) => {
     try {
-        const user = await prisma.user.findFirst({
-            where: {
-                username: req.body.username,
-                password: req.body.password
-            }
+        const user = await prisma.user.findUnique({
+            where: { username: req.body.username }
         });
 
         if (user) {
-            req.session.username = user.username;
-            req.session.role = user.role;
-            req.session.userId = user.id;
+            const isMatch = await bcrypt.compare(req.body.password, user.password);
+            if (isMatch) {
+                req.session.username = user.username;
+                req.session.role = user.role;
+                req.session.userId = user.id;
 
-            req.flash('success', `Welcome back, ${user.username}!`);
-            if (user.role === 'C') return res.redirect('/consumer');
-            if (user.role === 'M') return res.redirect('/manufuacturerp');
-            return res.redirect('/home');
-        } else {
-            req.flash('error', 'Invalid username or password.');
-            res.redirect('/login');
+                req.flash('success', `Welcome back, ${user.username}!`);
+                if (user.role === 'C') return res.redirect('/consumer');
+                if (user.role === 'M') return res.redirect('/manufacturerp');
+                return res.redirect('/home');
+            }
         }
+
+        req.flash('error', 'Invalid username or password.');
+        res.redirect('/login');
     } catch (err) {
         console.error(err);
         req.flash('error', 'Something went wrong. Please try again.');
@@ -52,11 +54,13 @@ exports.postSignup = async (req, res) => {
             return res.redirect('/signup');
         }
 
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
         await prisma.user.create({
             data: {
                 username: req.body.username,
                 email: req.body.email,
-                password: req.body.password,
+                password: hashedPassword,
                 role: 'A'
             }
         });
@@ -64,6 +68,7 @@ exports.postSignup = async (req, res) => {
         res.redirect('/login');
     } catch (err) {
         console.error(err);
+        req.flash('error', 'Something went wrong during signup.');
         res.redirect('/signup');
     }
 };
@@ -76,11 +81,13 @@ exports.postSignupConsumer = async (req, res) => {
             return res.redirect('/signup');
         }
 
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
         await prisma.user.create({
             data: {
                 username: req.body.username,
                 email: req.body.email,
-                password: req.body.password,
+                password: hashedPassword,
                 role: 'C',
                 contactName: req.body.contactname,
                 contactEmail: req.body.contactemail,
@@ -88,13 +95,14 @@ exports.postSignupConsumer = async (req, res) => {
                 websiteUrl: req.body.website,
                 address: req.body.Address,
                 contactPhone: req.body.contactphone,
-                image: req.file ? req.file.originalname : null
+                image: req.file ? req.file.filename : null // Assuming multer is config to save filename
             }
         });
         req.flash('success', 'Account created! Please login.');
         res.redirect('/login');
     } catch (err) {
         console.error(err);
+        req.flash('error', 'Something went wrong during signup.');
         res.redirect('/signup');
     }
 };
@@ -107,11 +115,13 @@ exports.postSignupManufacturer = async (req, res) => {
             return res.redirect('/signup');
         }
 
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
         await prisma.user.create({
             data: {
                 username: req.body.username,
                 email: req.body.email,
-                password: req.body.password,
+                password: hashedPassword,
                 role: 'M',
                 contactName: req.body.contactname,
                 contactEmail: req.body.contactemail,
@@ -120,13 +130,14 @@ exports.postSignupManufacturer = async (req, res) => {
                 address: req.body.Address,
                 contactPhone: req.body.contactphone,
                 rawMaterials: req.body.material,
-                image: req.file ? req.file.originalname : null
+                image: req.file ? req.file.filename : null
             }
         });
         req.flash('success', 'Account created! Please login.');
         res.redirect('/login');
     } catch (err) {
         console.error(err);
+        req.flash('error', 'Something went wrong during signup.');
         res.redirect('/signup');
     }
 };
