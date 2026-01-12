@@ -19,14 +19,17 @@ exports.postLogin = async (req, res) => {
             req.session.role = user.role;
             req.session.userId = user.id;
 
+            req.flash('success', `Welcome back, ${user.username}!`);
             if (user.role === 'C') return res.redirect('/consumer');
             if (user.role === 'M') return res.redirect('/manufuacturerp');
             return res.redirect('/home');
         } else {
+            req.flash('error', 'Invalid username or password.');
             res.redirect('/login');
         }
     } catch (err) {
         console.error(err);
+        req.flash('error', 'Something went wrong. Please try again.');
         res.redirect('/login');
     }
 };
@@ -44,7 +47,10 @@ exports.getSignup = (req, res) => {
 exports.postSignup = async (req, res) => {
     try {
         const exists = await prisma.user.findUnique({ where: { username: req.body.username } });
-        if (exists) return res.redirect('/login');
+        if (exists) {
+            req.flash('error', 'Username is already taken.');
+            return res.redirect('/signup');
+        }
 
         await prisma.user.create({
             data: {
@@ -54,7 +60,8 @@ exports.postSignup = async (req, res) => {
                 role: 'A'
             }
         });
-        res.redirect('/signup');
+        req.flash('success', 'Account created! Please login.');
+        res.redirect('/login');
     } catch (err) {
         console.error(err);
         res.redirect('/signup');
@@ -64,7 +71,10 @@ exports.postSignup = async (req, res) => {
 exports.postSignupConsumer = async (req, res) => {
     try {
         const exists = await prisma.user.findUnique({ where: { username: req.body.username } });
-        if (exists) return res.redirect('/login');
+        if (exists) {
+            req.flash('error', 'Username is already taken.');
+            return res.redirect('/signup');
+        }
 
         await prisma.user.create({
             data: {
@@ -81,7 +91,8 @@ exports.postSignupConsumer = async (req, res) => {
                 image: req.file ? req.file.originalname : null
             }
         });
-        res.redirect('/signup');
+        req.flash('success', 'Account created! Please login.');
+        res.redirect('/login');
     } catch (err) {
         console.error(err);
         res.redirect('/signup');
@@ -91,7 +102,10 @@ exports.postSignupConsumer = async (req, res) => {
 exports.postSignupManufacturer = async (req, res) => {
     try {
         const exists = await prisma.user.findUnique({ where: { username: req.body.username } });
-        if (exists) return res.redirect('/login');
+        if (exists) {
+            req.flash('error', 'Username is already taken.');
+            return res.redirect('/signup');
+        }
 
         await prisma.user.create({
             data: {
@@ -109,7 +123,8 @@ exports.postSignupManufacturer = async (req, res) => {
                 image: req.file ? req.file.originalname : null
             }
         });
-        res.redirect('/signup');
+        req.flash('success', 'Account created! Please login.');
+        res.redirect('/login');
     } catch (err) {
         console.error(err);
         res.redirect('/signup');

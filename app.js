@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
+const flash = require('connect-flash');
 const prisma = require('./config/db');
 const routes = require('./routes/index');
 
@@ -20,6 +21,15 @@ app.use(session({
     cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 1 day
     resave: false
 }));
+
+app.use(flash());
+
+// Pass flash messages to all templates
+app.use((req, res, next) => {
+    res.locals.error = req.flash('error');
+    res.locals.success = req.flash('success');
+    next();
+});
 
 // View Engine
 app.set('view engine', 'ejs');

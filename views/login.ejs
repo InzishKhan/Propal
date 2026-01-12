@@ -56,7 +56,7 @@ https://templatemo.com/tm-586-scholar
                         </a>
                         <!-- ***** Logo End ***** -->
                         <!-- ***** Serach Start ***** -->
-                    
+
                         <!-- ***** Serach Start ***** -->
                         <!-- ***** Menu Start ***** -->
                         <ul class="nav">
@@ -78,7 +78,7 @@ https://templatemo.com/tm-586-scholar
     <!-- ***** Header Area End ***** -->
 
     <div class="main-banner" id="top">
-     </div>
+    </div>
 
     <div class="contact-us section" id="contact">
         <div class="container">
@@ -87,6 +87,17 @@ https://templatemo.com/tm-586-scholar
                     <div class="section-heading">
                         <h6>Welcome Back</h6>
                         <h2>Login In or get Started <a href="/signup">Signup</a></h2>
+
+                        <% if (error && error.length> 0) { %>
+                            <div class="alert alert-danger mt-3">
+                                <%= error %>
+                            </div>
+                            <% } %>
+                                <% if (success && success.length> 0) { %>
+                                    <div class="alert alert-success mt-3">
+                                        <%= success %>
+                                    </div>
+                                    <% } %>
                     </div>
                 </div>
                 <div class="col-lg-6">
@@ -95,12 +106,14 @@ https://templatemo.com/tm-586-scholar
                             <div class="row">
                                 <div class="col-lg-12">
                                     <fieldset>
-                                    <input type="text" id="username" name="username" placeholder="enter your username" required>
+                                        <input type="text" id="username" name="username"
+                                            placeholder="enter your username" required>
                                     </fieldset>
                                 </div>
                                 <div class="col-lg-12">
                                     <fieldset>
-                                    <input type="password" id="password" name="password" placeholder="enter your password" required>
+                                        <input type="password" id="password" name="password"
+                                            placeholder="enter your password" required>
                                     </fieldset>
                                 </div>
                                 <div class="col-lg-12">

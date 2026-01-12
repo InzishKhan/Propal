@@ -27,25 +27,25 @@ TemplateMo 586 Scholar
 https://templatemo.com/tm-586-scholar
 
 -->
-<style>
-    .main-button .ax {
-  display: inline-block;
-  background-color: rgb(221, 206, 206);
-  color: #7a6ad8;
-  font-size: 14px;
-  font-weight: 500;
-  height: 40px;
-  line-height: 40px;
-  padding: 0px 25px;
-  border-radius: 20px;
-  transition: all .3s;
-}
+    <style>
+        .main-button .ax {
+            display: inline-block;
+            background-color: rgb(221, 206, 206);
+            color: #7a6ad8;
+            font-size: 14px;
+            font-weight: 500;
+            height: 40px;
+            line-height: 40px;
+            padding: 0px 25px;
+            border-radius: 20px;
+            transition: all .3s;
+        }
 
-.main-button .ax:hover {
-  background-color: #7a6ad8;
-  color: #fff;
-}
-</style>
+        .main-button .ax:hover {
+            background-color: #7a6ad8;
+            color: #fff;
+        }
+    </style>
 </head>
 
 <body>
@@ -71,19 +71,19 @@ https://templatemo.com/tm-586-scholar
                     <nav class="main-nav">
                         <!-- ***** Logo Start ***** -->
                         <a href="/home" class="logo">
-                        <h1>ProPal</h1>
+                            <h1>ProPal</h1>
                         </a>
                         <!-- ***** Logo End ***** -->
                         <!-- ***** Serach Start ***** -->
-                 
+
                         <!-- ***** Serach Start ***** -->
                         <!-- ***** Menu Start ***** -->
                         <ul class="nav">
-                        <li class="scroll-to-section"><a href="/home" class="active">Home</a></li>
-                        <li class="scroll-to-section"><a href="/explore">Manufactures</a></li>
-                        <li class="scroll-to-section"><a href="/event">Events</a></li>
-                        <li class="scroll-to-section"><a href="/about">About</a></li>
-                        <li class="scroll-to-section"><a href="/contact">contact us</a></li>
+                            <li class="scroll-to-section"><a href="/home" class="active">Home</a></li>
+                            <li class="scroll-to-section"><a href="/explore">Manufactures</a></li>
+                            <li class="scroll-to-section"><a href="/event">Events</a></li>
+                            <li class="scroll-to-section"><a href="/about">About</a></li>
+                            <li class="scroll-to-section"><a href="/contact">contact us</a></li>
                         </ul>
                         <a class='menu-trigger'>
                             <span>Menu</span>
@@ -99,46 +99,60 @@ https://templatemo.com/tm-586-scholar
     <div class="main-banner" id="top">
         <div class="container">
             <div class="row">
-        <div class="main-button">
-            <!-- <input type="radio" id="admin" name="role" value="A" checked>
+                <div class="main-button">
+                    <!-- <input type="radio" id="admin" name="role" value="A" checked>
             <label for="A">Admin</label><br> -->
-            <input type="radio" id="Manufacturer"lass="ax"  name="role" value="M" >
-            <label for="M" class="ax"> Manufacturer</label><br>
-            <br>
-            <input type="radio" lass="ax" id="Consumer" name="role" value="C" checked>
-            <label for="C" class="ax">Consumer</label>
+                    <input type="radio" id="Manufacturer" lass="ax" name="role" value="M">
+                    <label for="M" class="ax"> Manufacturer</label><br>
+                    <br>
+                    <input type="radio" lass="ax" id="Consumer" name="role" value="C" checked>
+                    <label for="C" class="ax">Consumer</label>
+                </div>
+            </div>
         </div>
-        </div>
-        </div>
-     </div>
+    </div>
 
     <div class="contact-us section" id="form">
-        <h2 class="container" >User Form</h2>
-        <div class="container" style="position:  inherit;" >
+        <h2 class="container">User Form</h2>
+        <div class="container" style="position:  inherit;">
             <div class="row">
                 <div class="col-lg-6  align-self-center">
                     <div class="section-heading">
                         <h6>New Here</h6>
                         <h2>Already a memeber <a href="/login">Login</a></h2>
+
+                        <% if (error && error.length> 0) { %>
+                            <div class="alert alert-danger mt-3">
+                                <%= error %>
+                            </div>
+                            <% } %>
+                                <% if (success && success.length> 0) { %>
+                                    <div class="alert alert-success mt-3">
+                                        <%= success %>
+                                    </div>
+                                    <% } %>
                     </div>
                 </div>
-                <div class="col-lg-6" >
+                <div class="col-lg-6">
                     <div class="contact-us-content">
                         <form id="contact-form" class="0" action="/signup" method="post">
                             <div class="row">
                                 <div class="col-lg-12">
                                     <fieldset>
-                                    <input type="text" id="username" name="username" placeholder="enter your username" required>
+                                        <input type="text" id="username" name="username"
+                                            placeholder="enter your username" required>
                                     </fieldset>
                                 </div>
                                 <div class="col-lg-12">
                                     <fieldset>
-                                        <input type="email" id="email" name="email" placeholder="enter your email here" required>
+                                        <input type="email" id="email" name="email" placeholder="enter your email here"
+                                            required>
                                     </fieldset>
                                 </div>
                                 <div class="col-lg-12">
                                     <fieldset>
-                                    <input type="password" id="password" name="password"  placeholder="enter your password here" required>
+                                        <input type="password" id="password" name="password"
+                                            placeholder="enter your password here" required>
                                     </fieldset>
                                 </div>
                                 <input type="hidden" value="A" name="value1">
@@ -155,182 +169,205 @@ https://templatemo.com/tm-586-scholar
         </div>
     </div>
 
-<div class="contact-us section" id="form2">
-    <h2 class="container">Consumer Form</h2>
-    <div class="container" style="position:  inherit;">
-        <div class="row">
-            <div class="col-lg-6  align-self-center">
-                <div class="section-heading">
-                    <h6>New Here</h6>
-                    <h2>Already a memeber <a href="/login">Login</a></h2>
+    <div class="contact-us section" id="form2">
+        <h2 class="container">Consumer Form</h2>
+        <div class="container" style="position:  inherit;">
+            <div class="row">
+                <div class="col-lg-6  align-self-center">
+                    <div class="section-heading">
+                        <h6>New Here</h6>
+                        <h2>Already a memeber <a href="/login">Login</a></h2>
+
+                        <% if (error && error.length> 0) { %>
+                            <div class="alert alert-danger mt-3">
+                                <%= error %>
+                            </div>
+                            <% } %>
+                                <% if (success && success.length> 0) { %>
+                                    <div class="alert alert-success mt-3">
+                                        <%= success %>
+                                    </div>
+                                    <% } %>
+                    </div>
                 </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="contact-us-content">
-                    <form id="contact-form" action="/signupcon" method="post" enctype="multipart/form-data">
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="username" name="username" placeholder="enter your username"
-                                        required>
-                                </fieldset>
+                <div class="col-lg-6">
+                    <div class="contact-us-content">
+                        <form id="contact-form" action="/signupcon" method="post" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="username" name="username"
+                                            placeholder="enter your username" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="email" id="email" name="email" placeholder="enter your email here"
+                                            required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="password" id="password" name="password"
+                                            placeholder="enter your password here" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="contactname" name="contactname"
+                                            placeholder="enter your contact name" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="email" id="contactemail" name="contactemail"
+                                            placeholder="enter your contact email" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="companyname" name="companyname"
+                                            placeholder="enter your company name" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="website" name="website" placeholder="enter your website"
+                                            required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="Address" name="Address"
+                                            placeholder="enter your Address here" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="contactphone" name="contactphone"
+                                            placeholder="enter your contact phone" required>
+                                    </fieldset>
+                                </div>
+                                <input type="file" name="Picture" required>
+                                <input type="hidden" name="value4" value="C" readonly>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <button type="submit" id="form-submit" class="orange-button">Signup</button>
+                                    </fieldset>
+                                </div>
                             </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="email" id="email" name="email" placeholder="enter your email here"
-                                        required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="password" id="password" name="password"
-                                        placeholder="enter your password here" required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="contactname" name="contactname"
-                                        placeholder="enter your contact name" required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="email" id="contactemail" name="contactemail"
-                                        placeholder="enter your contact email" required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="companyname" name="companyname"
-                                        placeholder="enter your company name" required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="website" name="website" placeholder="enter your website"
-                                        required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="Address" name="Address" placeholder="enter your Address here"
-                                        required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="contactphone" name="contactphone"
-                                        placeholder="enter your contact phone" required>
-                                </fieldset>
-                            </div>
-                                    <input type="file" name="Picture" required>
-                            <input type="hidden" name="value4" value="C" readonly>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <button type="submit" id="form-submit" class="orange-button">Signup</button>
-                                </fieldset>
-                            </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 
-<div class="contact-us section" id="form1">
-    <h2 class="container">Manufacturer Form</h2>
-    <div class="container" style="position:  inherit;">
-        <div class="row">
-            <div class="col-lg-6  align-self-center">
-                <div class="section-heading">
-                    <h6>New Here</h6>
-                    <h2>Already a memeber <a href="/login">Login</a></h2>
+    <div class="contact-us section" id="form1">
+        <h2 class="container">Manufacturer Form</h2>
+        <div class="container" style="position:  inherit;">
+            <div class="row">
+                <div class="col-lg-6  align-self-center">
+                    <div class="section-heading">
+                        <h6>New Here</h6>
+                        <h2>Already a memeber <a href="/login">Login</a></h2>
+
+                        <% if (error && error.length> 0) { %>
+                            <div class="alert alert-danger mt-3">
+                                <%= error %>
+                            </div>
+                            <% } %>
+                                <% if (success && success.length> 0) { %>
+                                    <div class="alert alert-success mt-3">
+                                        <%= success %>
+                                    </div>
+                                    <% } %>
+                    </div>
                 </div>
-            </div>    
-        <div class="col-lg-6">
-                <div class="contact-us-content">
-                    <form id="contact-form" class="1" action="/signupman" method="post" enctype="multipart/form-data">
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="username" name="username" placeholder="enter your username"
-                                        required>
-                                </fieldset>
+                <div class="col-lg-6">
+                    <div class="contact-us-content">
+                        <form id="contact-form" class="1" action="/signupman" method="post"
+                            enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="username" name="username"
+                                            placeholder="enter your username" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="email" id="email" name="email" placeholder="enter your email here"
+                                            required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="password" id="password" name="password"
+                                            placeholder="enter your password here" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="contactname" name="contactname"
+                                            placeholder="enter your contact name" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="email" id="contactemail" name="contactemail"
+                                            placeholder="enter your contact email" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="companyname" name="companyname"
+                                            placeholder="enter your company name" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="website" name="website" placeholder="enter your website"
+                                            required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="Address" name="Address"
+                                            placeholder="enter your Address here" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="contactphone" name="contactphone"
+                                            placeholder="enter your contact phone" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="text" id="material" name="material"
+                                            placeholder="enter your material" required>
+                                    </fieldset>
+                                </div>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <input type="file" name="Picture" required>
+                                    </fieldset>
+                                </div>
+                                <input type="hidden" name="value2" value="M" readonly>
+                                <div class="col-lg-12">
+                                    <fieldset>
+                                        <button type="submit" id="form-submit" class="orange-button">Signup</button>
+                                    </fieldset>
+                                </div>
                             </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="email" id="email" name="email" placeholder="enter your email here"
-                                        required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="password" id="password" name="password"
-                                        placeholder="enter your password here" required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="contactname" name="contactname"
-                                        placeholder="enter your contact name" required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="email" id="contactemail" name="contactemail"
-                                        placeholder="enter your contact email" required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="companyname" name="companyname"
-                                        placeholder="enter your company name" required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="website" name="website" placeholder="enter your website"
-                                        required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="Address" name="Address" placeholder="enter your Address here"
-                                        required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="contactphone" name="contactphone"
-                                        placeholder="enter your contact phone" required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="text" id="material" name="material" placeholder="enter your material"
-                                        required>
-                                </fieldset>
-                            </div>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <input type="file" name="Picture" required>
-                                </fieldset>
-                            </div>
-                            <input type="hidden" name="value2" value="M" readonly>
-                            <div class="col-lg-12">
-                                <fieldset>
-                                    <button type="submit" id="form-submit" class="orange-button">Signup</button>
-                                </fieldset>
-                            </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
     <footer>
         <div class="container">
@@ -379,7 +416,7 @@ https://templatemo.com/tm-586-scholar
     <script src="assets/js/custom.js"></script>
     <script src="assets/js/dark.js"></script>
 
- 
+
 
 </body>
 
